@@ -4,7 +4,7 @@ import re
 
 class Token(Enum):
     new_line = auto()
-    dec = auto()
+    unary_op = auto()
     num = auto()
     binary_op = auto()
     identifier = auto()
@@ -18,7 +18,7 @@ def lex(file_name):
         if word == "\n":
             yield (Token.new_line)
         elif word == "int":
-            yield (Token.dec)
+            yield (Token.unary_op)
         elif re.match("\\d+", word):
             yield (Token.num, word)
         elif re.match("[-,+,*,//]", word):
