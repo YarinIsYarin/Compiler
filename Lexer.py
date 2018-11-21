@@ -1,14 +1,5 @@
-from enum import Enum, auto
+from Consts import Token, Priorities
 import re
-
-
-class Token(Enum):
-    new_line = auto()
-    unary_op = auto()
-    num = auto()
-    binary_op = auto()
-    identifier = auto()
-    eof = auto()
 
 
 def lex(file_name):
@@ -16,16 +7,19 @@ def lex(file_name):
     text = read_word(source.read())
     for word in text:
         if word == "\n":
-            yield (Token.new_line)
-        elif word == "int":
-            yield (Token.unary_op)
+            yield (Token.new_line, "\n")
+        elif word in Priorities.left_value_unary_op.keys() or \
+                word in Priorities.right_value_unary_op.keys():
+            yield (Token.unary_op, word)
         elif re.match("\\d+", word):
-            yield (Token.num, word)
-        elif re.match("[-,+,*,//]", word):
+            yield (Token.immediate, word)
+        elif word in Priorities.binary_op.keys():
             yield (Token.binary_op, word)
         else:
             yield (Token.identifier, word)
-    yield (Token.eof)
+    # This line ensures that every file ends in a blank line,
+    # There we can detect end of lines by a '\n'
+    yield (Token.new_line, "\n")
 
 
 # Reads a text word by word
@@ -43,7 +37,6 @@ def read_word(text):
                 word = ""
             yield char
             continue
-
         else:
             word += char
     if word != "":
