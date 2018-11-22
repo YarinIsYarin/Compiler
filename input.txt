@@ -1,5 +1,4 @@
-int x
-x = 3
-int y = 4
-y = x + y*3
-int my_age = 17
+int x = 3 + 15 / 5
+int hello
+hello = 42
+hello = hello - x
