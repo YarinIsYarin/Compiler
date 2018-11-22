@@ -6,7 +6,7 @@ import CodeGen
 code_gen = CodeGen.CodeGen("output")
 lines = []
 curr_line = []
-for word in lex("input.txt"):
+for word in lex(open("input.txt", 'r').read()):
     if word[0] != Consts.Token.new_line:
         curr_line.append(Parser.ast_node_factory(word[0], word[1]))
     else:

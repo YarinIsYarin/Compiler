@@ -2,18 +2,16 @@ from Consts import Token, Priorities
 import re
 
 
-def lex_with_para(file_name, text):
+def lex_with_para(text):
     ret_list = []
     word = next(text)
     while ')' != word:
         ret_list.append(word)
         word = next(text)
-    return [i for i in lex(source=ret_list) if i[0] != Token.new_line]
+    return [i for i in lex(ret_list) if i[0] != Token.new_line]
 
 
-def lex(file_name=None, source=None):
-    if not source:
-        source = open(file_name, 'r').read()
+def lex(source):
     text = read_word(source)
     for word in text:
         if word == "\n":
@@ -26,7 +24,7 @@ def lex(file_name=None, source=None):
         elif word in Priorities.binary_op.keys():
             yield (Token.binary_op, word)
         elif "(" == word:
-            yield (Token.parentheses_block, lex_with_para(file_name, text))
+            yield (Token.parentheses_block, lex_with_para(text))
         else:
             yield (Token.identifier, word)
     # This line ensures that every file ends in a blank line,
