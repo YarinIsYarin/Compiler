@@ -1,4 +1,4 @@
-int x = 3 + 15 / 5
-int hello
-hello = 42
-hello = hello - x
+int x = (3+1)*4
+int y
+y = 48*(34-22)/2
+int my_not_may_my_ages = x*(y+2)

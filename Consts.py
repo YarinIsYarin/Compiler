@@ -10,6 +10,9 @@ class Token(Enum):
     binary_op = auto()
     immediate = auto()
     identifier = auto()
+    parentheses_block = auto()
+    open_parentheses = auto()
+    close_parentheses = auto()
     eof = auto()
 
 

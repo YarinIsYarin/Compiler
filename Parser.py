@@ -28,6 +28,8 @@ def ast_node_factory(token, data):
         return Identifier(data)
     if token == Token.immediate:
         return Immediate(data)
+    if token == Token.parentheses_block:
+        return ParenthesesBlock(data)
     raise ValueError("Unknown token: " + str(token))
 
 
@@ -60,6 +62,18 @@ class ASTNode:
         raise NotImplementedError("generate_code method is abstract in the ASTNode class")
 
 
+class ParenthesesBlock(ASTNode):
+    def __init__(self, action):
+        ASTNode.__init__(self, 0, "")
+        self.params = [ast_node_factory(i[0], i[1]) for i in action]
+
+    def parse(self, line):
+        self.params = [parse(self.params)]
+
+    def generate_code(self, code_generator):
+        return self.params[0].generate_code(code_generator)
+
+
 class BinaryOperator(ASTNode):
     def __init__(self, action):
         ASTNode.__init__(self, Priorities.binary_op[action], action)
@@ -87,13 +101,13 @@ class BinaryOperator(ASTNode):
         if '/' == self.action:
             self.params[0].generate_code(code_generator)
             self.params[1].generate_code(code_generator)
-            code_generator.write_code("mov EDX, 0")
+            code_generator.write_code("mov edx, 0")
             code_generator.write_code("mov ax, 0")
             code_generator.write_code("mov bx, 0")
             code_generator.write_code("pop rbx")
             code_generator.write_code("pop rax")
             code_generator.write_code("div ebx")
-            code_generator.write_code("push rbx")
+            code_generator.write_code("push rax")
             return
 
         print("Error: unknown binary operator")
