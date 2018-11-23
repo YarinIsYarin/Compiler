@@ -6,6 +6,8 @@ class CodeGen:
         self.output_name = output_name
         self.code_seg_name = output_name + "_code_seg.txt"
         self.data_seg_name = output_name + "_data_seg.txt"
+        open(self.code_seg_name, 'w')
+        open(self.data_seg_name, 'w')
         self.known_vars = []
 
     def write_data(self, data):

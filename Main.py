@@ -7,6 +7,7 @@ code_gen = CodeGen.CodeGen("output")
 lines = []
 curr_line = []
 for word in lex(open("input.txt", 'r').read()):
+    #print(word)
     if word[0] != Consts.Token.new_line:
         curr_line.append(Parser.ast_node_factory(word[0], word[1]))
     else:
@@ -18,7 +19,6 @@ for line in lines:
 code_gen.generate_code()
 
 # for debugging, prints the AST tree of every line
-'''
 def dfs (root):
     print("{", end='')
     print(str(root), end='')
@@ -31,5 +31,3 @@ def dfs (root):
 for line in lines:
     dfs(line)
     print()
-'''
-

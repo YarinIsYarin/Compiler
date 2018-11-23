@@ -5,10 +5,12 @@ from CodeGen import CodeGen
 def find_highest_priority(line):
     if not line or len(line) < 1:
         return None
+    line.reverse()
     best = line[0]
     for i in line:
         if i.get_priority() > best.get_priority():
             best = i
+    line.reverse()
     return best
 
 
@@ -91,10 +93,10 @@ class BinaryOperator(ASTNode):
             code_generator.write_code("pop [" + self.params[0].get_name(code_generator) + "]")
             return
         if self.action in ['+', '-', '*']:
-            self.params[0].generate_code(code_generator)
             self.params[1].generate_code(code_generator)
-            code_generator.write_code("pop rbx")
+            self.params[0].generate_code(code_generator)
             code_generator.write_code("pop rax")
+            code_generator.write_code("pop rbx")
             code_generator.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
             code_generator.write_code("push rax")
             return

@@ -2,12 +2,20 @@ from Consts import Token, Priorities
 import re
 
 
-def lex_with_para(text):
+def lex_with_parentheses(text):
     ret_list = []
+    # We will use the stack to the detect then the parentheses are
+    stack = ['(']
     word = next(text)
-    while ')' != word:
+    if ')' == word:
+        stack.pop
+    while stack:
         ret_list.append(word)
         word = next(text)
+        if '(' == word:
+            stack.append('(')
+        if ')' == word:
+            stack.pop()
     return [i for i in lex(ret_list) if i[0] != Token.new_line]
 
 
@@ -24,7 +32,7 @@ def lex(source):
         elif word in Priorities.binary_op.keys():
             yield (Token.binary_op, word)
         elif "(" == word:
-            yield (Token.parentheses_block, lex_with_para(text))
+            yield (Token.parentheses_block, lex_with_parentheses(text))
         else:
             yield (Token.identifier, word)
     # This line ensures that every file ends in a blank line,
