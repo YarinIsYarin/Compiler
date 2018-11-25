@@ -1,3 +1,8 @@
-int x = 3
-int y = 12
-int hello = (x+y)*x-y+5*(x+2*(y-x*2))
+int[5] hello
+int one = 1
+hello[0] = one
+hello[1] = one
+hello[2] = 2
+hello[3] = 3
+hello[4] = 1
+int outing = hello[0] * hello[1] * hello[2] * hello[3] * hello[4] * 4 - 15

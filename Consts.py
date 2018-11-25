@@ -11,8 +11,7 @@ class Token(Enum):
     immediate = auto()
     identifier = auto()
     parentheses_block = auto()
-    open_parentheses = auto()
-    close_parentheses = auto()
+    brackets_block = auto()
     eof = auto()
 
 
