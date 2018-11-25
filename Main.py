@@ -3,6 +3,7 @@ import Consts
 import Parser
 import CodeGen
 
+print("Compiling output.txt...")
 code_gen = CodeGen.CodeGen("output")
 lines = []
 curr_line = []
