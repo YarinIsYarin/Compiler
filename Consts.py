@@ -13,6 +13,7 @@ class Token(Enum):
     parentheses_block = auto()
     brackets_block = auto()
     eof = auto()
+    comment = auto()
 
 
 class Priorities:

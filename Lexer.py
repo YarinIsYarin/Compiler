@@ -36,6 +36,8 @@ def lex(source):
             yield (Token.parentheses_block, lex_with_parentheses(text, '('))
         elif "[" == word:
             yield (Token.brackets_block, lex_with_parentheses(text, '['))
+        elif "#" == word:
+            yield (Token.comment, "#")
         else:
             yield (Token.identifier, word)
     # This line ensures that every file ends in a blank line,

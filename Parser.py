@@ -30,7 +30,6 @@ def parse(line):
         root = find_highest_priority(line)
         root.parse(line)
         return root
-    raise ValueError("Cannot parse an empty line")
     
 
 def ast_node_factory(token, data):

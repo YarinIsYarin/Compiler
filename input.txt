@@ -1,7 +1,9 @@
 int[5] hello
 int one = 1
+
 hello[0] = one
 hello[1] = one
+# hi ih
 hello[2] = 2
 hello[3] = 3
 hello[4] = 1
