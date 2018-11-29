@@ -1,7 +1,9 @@
 from Consts import Token, Priorities
 
+compiler = None
 
-# Receives a list of ASTNode
+
+# Receives a list of ASTNode and returns the one we calculate last
 def find_highest_priority(line):
     if not line or len(line) < 1:
         return None
@@ -14,13 +16,17 @@ def find_highest_priority(line):
     return best
 
 
-# Receives a list of ASTNode
+# turns a list of ASTNode into an ast tree
+# Returns the root of the tree
 def parse(line):
     if len(line) > 1:
         prev = None
         # Deal with thing like [3]
         for word in line:
-            if BracketsBlock == type(word): #and type(prev) == RValueUnaryOperator:
+            # Deal things like x[3] and int[3]
+            if BracketsBlock == type(word):
+                if RValueUnaryOperator != type(prev) and Identifier != type(prev):
+                    compiler.messages.write_error("Random array index")
                 prev.add_data(word.data)
                 line.remove(word)
                 word = None
@@ -29,14 +35,17 @@ def parse(line):
     if line:
         root = find_highest_priority(line)
         root.parse(line)
+        #print("root is: " + str(root))
         return root
     
 
 def ast_node_factory(token, data):
     if token == Token.binary_op:
-        return binary_operator_factory(data)
+        return BinaryOperator(data)
     if token == Token.unary_op:
-        return unary_operator_factory(data)
+        if data in Priorities.left_value_unary_op.keys():
+            return LValueUnaryOperator(data)
+        return RValueUnaryOperator(data)
     if token == Token.identifier:
         return Identifier(data)
     if token == Token.immediate:
@@ -48,24 +57,18 @@ def ast_node_factory(token, data):
     raise ValueError("Unknown token: " + str(token))
 
 
-def binary_operator_factory(operator):
-    return BinaryOperator(operator)
-
-
-def unary_operator_factory(operator):
-    if operator in Priorities.left_value_unary_op.keys():
-        return LValueUnaryOperator(operator)
-    return RValueUnaryOperator(operator)
-
-
 class ASTNode:
-    def __init__(self, priority, action, additonal_data=None):
+    def __init__(self, priority, action, additional_data=None):
         self.priority = priority
         self.params = []
+        # action is the actual string given
         self.action = action
-        self.additional_data = additonal_data
+        # additional data is for things that can act in different ways
+        # and cant be classified as one type of operator such as [7]
+        self.additional_data = additional_data
     
     def get_priority(self): return self.priority
+    def add_data(self, data): self.additional_data = data
         
     def parse(self, line):
         raise NotImplementedError("parse method is abstract in the ASTNode class")
@@ -73,12 +76,12 @@ class ASTNode:
     def __str__(self):
         return str(self.action)
 
-    def generate_code(self, code_generator):
+    def generate_code(self, output):
         return ""
         raise NotImplementedError("generate_code method is abstract in the ASTNode class")
 
 
-class BracketsBlock():
+class BracketsBlock:
     def __init__(self, data):
         self.data = data
 
@@ -91,8 +94,11 @@ class ParenthesesBlock(ASTNode):
     def parse(self, line):
         self.params = [parse(self.params)]
 
-    def generate_code(self, code_generator):
-        return self.params[0].generate_code(code_generator)
+    def generate_code(self, output):
+        return self.params[0].generate_code(output)
+
+    def __str__(self):
+        return str(self.params[0])
 
 
 class BinaryOperator(ASTNode):
@@ -102,33 +108,49 @@ class BinaryOperator(ASTNode):
     # Receive a list of ASTNode
     def parse(self, line):
         self.params.append(find_highest_priority(line[:line.index(self)]))
-        self.params[0].parse(line[:line.index(self)])
-        self.params.append(find_highest_priority(line[line.index(self)+1:]))
-        self.params[1].parse(line[line.index(self)+1:])
+        if self.params[0] is not None:
+            self.params[0].parse(line[:line.index(self)])
+            self.params.append(find_highest_priority(line[line.index(self)+1:]))
+            if self.params[1] is not None:
+                self.params[1].parse(line[line.index(self)+1:])
+                return
 
-    def generate_code(self, code_generator):
+        compiler.messages.write_error("Binary operator " + self.action + " requires two parameters")
+
+    def generate_code(self, output):
+        if 2 != len(self.params):
+            return
         if "=" == self.action:
-            self.params[1].generate_code(code_generator)
-            code_generator.write_code("pop " + self.params[0].get_name(code_generator))
+            if not (isinstance(self.params[0], Identifier) or self.params[0].action == "int"):
+                compiler.messages.write_error("Can't change the value of " + str(self.params[0]))
+                return
+            if self.params[1]:
+                self.params[1].generate_code(output)
+                if self.params[0]:
+                    output.code_gen.write_code("pop " + str(self.params[0].get_name(output)))
             return
         if self.action in ['+', '-', '*']:
-            self.params[1].generate_code(code_generator)
-            self.params[0].generate_code(code_generator)
-            code_generator.write_code("pop rax")
-            code_generator.write_code("pop rbx")
-            code_generator.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
-            code_generator.write_code("push rax")
+            if self.params[1] is not None:
+                self.params[1].generate_code(output)
+            if self.params[0] is not None:
+                self.params[0].generate_code(output)
+            output.code_gen.write_code("pop rax")
+            output.code_gen.write_code("pop rbx")
+            output.code_gen.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
+            output.code_gen.write_code("push rax")
             return
         if '/' == self.action:
-            self.params[0].generate_code(code_generator)
-            self.params[1].generate_code(code_generator)
-            code_generator.write_code("mov edx, 0")
-            code_generator.write_code("mov ax, 0")
-            code_generator.write_code("mov bx, 0")
-            code_generator.write_code("pop rbx")
-            code_generator.write_code("pop rax")
-            code_generator.write_code("div ebx")
-            code_generator.write_code("push rax")
+            if self.params[0] is not None:
+                self.params[0].generate_code(output)
+            if self.params[1] is not None:
+                self.params[1].generate_code(output)
+            output.code_gen.write_code("mov edx, 0")
+            output.code_gen.write_code("mov ax, 0")
+            output.code_gen.write_code("mov bx, 0")
+            output.code_gen.write_code("pop rbx")
+            output.code_gen.write_code("pop rax")
+            output.code_gen.write_code("div ebx")
+            output.code_gen.write_code("push rax")
             return
 
         print("Error: unknown binary operator")
@@ -154,30 +176,40 @@ class RValueUnaryOperator(ASTNode):
     def add_data(self, new_data):
         self.additional_data = new_data
 
-    def get_name(self, code_generator):
-        self.generate_code(code_generator)
-        return self.params[0].get_name(code_generator)
+    def get_name(self, output):
+        self.generate_code(output)
+        if self.params[0]:
+            return self.params[0].get_name(output)
 
     # Receive a list of ASTNode
     def parse(self, line):
         self.params.append(find_highest_priority(line[line.index(self) + 1:]))
+        if len(self.params) < 1 or not self.params[0]:
+            compiler.messages.write_error(self.action + " missing a name")
+            return
         self.params[0].parse(line[line.index(self) + 1:])
 
-    def generate_code(self, code_generator):
+    def generate_code(self, output):
         if self.action == "int":
             if type(self.params[0]) is Identifier:
+                var_name = self.params[0].action
+                if var_name in compiler.code_gen.known_vars:
+                    compiler.messages.write_error(var_name + " is already defined")
                 # If this is an array
                 if self.additional_data:
-                    code_generator.write_data(self.params[0].action + " qword " +\
-                                              str(self.additional_data.params[0]) + " dup (0)")
+                    output.code_gen.known_vars[self.params[0].action] = "int[]"
+                    output.code_gen.write_data(self.params[0].action + " qword " +
+                                               str(self.additional_data.params[0]) + " dup (0)")
                     var_name = self.params[0].action
-                    code_generator.known_vars.append((self.params[0].action, "int[]"))
                     return var_name
-                code_generator.write_data(self.params[0].action + " qword 0")
+                # Not an array
+                output.code_gen.known_vars[self.params[0].action] = "int"
+                output.code_gen.write_data(self.params[0].action + " qword 0")
                 var_name = self.params[0].action
-                code_generator.known_vars.append(self.params[0].action)
                 return var_name
-            print("Error: " + self.params[0].action + " is not a valid int name")
+                return var_name
+            if self.params[0]:
+                output.messages.write_error(self.params[0].action + " is not a valid int name")
 
 
 class Immediate(ASTNode):
@@ -187,8 +219,8 @@ class Immediate(ASTNode):
     def parse(self, line):
         pass
 
-    def generate_code(self, code_generator):
-        code_generator.write_code("push " + self.action)
+    def generate_code(self, output):
+        output.code_gen.write_code("push " + self.action)
 
 
 class Identifier(ASTNode):
@@ -201,22 +233,34 @@ class Identifier(ASTNode):
     def add_data(self, data):
         self.additional_data = data
 
-    def get_name(self, code_generator):
+    def get_name(self, output):
+        if self.action not in compiler.code_gen.known_vars:
+            output.messages.write_error("Unknown variable " + self.action)
+            return self.action
+        if self.additional_data and compiler.code_gen.known_vars[self.action] != "int[]":
+            compiler.messages.write_error(self.action + " is not an array")
+            return self.action
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
-            self.additional_data.generate_code(code_generator)
-            code_generator.write_code("pop rbx")
-            code_generator.write_code("imul rbx, 8")
+            self.additional_data.generate_code(output)
+            output.code_gen.write_code("pop rbx")
+            output.code_gen.write_code("imul rbx, 8")
             return "[" + self.action + " + rbx]"
         return self.action
 
-    def generate_code(self, code_generator):
+    def generate_code(self, output):
+        if self.action not in output.code_gen.known_vars:
+            output.messages.write_error("Unknown variable " + self.action)
+            return self.action
+        if self.additional_data and compiler.code_gen.known_vars[self.action] != "int[]":
+            compiler.messages.write_error(self.action + " is not an array")
+            return self.action
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
-            self.additional_data.generate_code(code_generator)
-            code_generator.write_code("pop rbx")
-            code_generator.write_code("imul rbx, 8")
-            code_generator.write_code("push [" + self.action + " + rbx]")
+            self.additional_data.generate_code(output)
+            output.code_gen.write_code("pop rbx")
+            output.code_gen.write_code("imul rbx, 8")
+            output.code_gen.write_code("push [" + self.action + " + rbx]")
         else:
-            code_generator.write_code("push " + self.action)
+            output.code_gen.write_code("push " + self.action)
         return self.action

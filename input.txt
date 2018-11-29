@@ -1,10 +1,15 @@
-int[5] hello
-int one = 1
-
-hello[0] = one
-hello[1] = one
-# hi ih
-hello[2] = 2
-hello[3] = 3
-hello[4] = 1
-int outing = hello[0] * hello[1] * hello[2] * hello[3] * hello[4] * 4 - 15
+int x = 1
+int x = 2
+int x = 3
+y = 3 +
+int y = x[3]
+y = y + 15
+#y = 3 + *
+3 = 12
+y = (
+z = 30
+int hello = 8
+int hell = 9
+(3+) = 3
+int = 12
+x = [3]

@@ -14,6 +14,7 @@ class Token(Enum):
     brackets_block = auto()
     eof = auto()
     comment = auto()
+    missing_parentheses = auto()
 
 
 class Priorities:

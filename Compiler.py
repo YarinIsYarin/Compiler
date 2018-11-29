@@ -1,6 +1,31 @@
 import os
 
 
+class Compiler:
+    def __init__(self, output_name, input_name):
+        self.code_gen = CodeGen(output_name)
+        self.messages = CompilingMessages(output_name, input_name)
+
+
+class CompilingMessages:
+    def __init__(self, output_name, input_name):
+        self.lines = open(input_name + '.txt').readlines()
+        self.output_file = open(output_name + " errors.txt", 'w')
+        self.output_file.write("Compiling " + input_name + "...\n")
+        self.line = 0
+        self.errors = 0
+        self.warnings = 0
+        self.line_number = 1
+
+    def write_error(self, error_msg):
+        self.output_file.write("Error at line " + str(self.line_number) + ": " + error_msg + ":\n")
+        self.output_file.write(self.lines[self.line_number - 1] + "\n")
+        self.errors += 1
+
+    def next_line(self):
+        self.line_number += 1
+
+
 class CodeGen:
     def __init__(self, output_name):
         self.output_name = output_name
@@ -8,7 +33,7 @@ class CodeGen:
         self.data_seg_name = output_name + "_data_seg.txt"
         open(self.code_seg_name, 'w')
         open(self.data_seg_name, 'w')
-        self.known_vars = []
+        self.known_vars = {}
 
     def write_data(self, data):
         data_seg = open(self.data_seg_name, "a")
