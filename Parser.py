@@ -49,6 +49,8 @@ def ast_node_factory(token, data):
             return Declaration(data)
         if "if" == data:
             return If(data)
+        if "while" == data:
+            return While(data)
         return RValueUnaryOperator(data)
     if token == Token.identifier:
         return Identifier(data)
@@ -196,6 +198,19 @@ class If(RValueUnaryOperator):
         end_of_if = compiler.label_gen()
         compiler.write_code("je " + end_of_if)
         compiler.gen_at_end_of_block(end_of_if + ":")
+
+
+class While(RValueUnaryOperator):
+    def __init__(self, action, additional_data=None):
+        RValueUnaryOperator.__init__(self, action, additional_data)
+
+    def generate_code(self, output):
+        start_of_loop = compiler.label_gen()
+        end_of_loop = compiler.label_gen()
+        compiler.write_code("jmp " + end_of_loop)
+        compiler.write_code(start_of_loop + ":")
+        gen_at_end_of_block = [end_of_loop + ":", self.params[0], "pop rax", "cmp rax, 0", "jne " + start_of_loop]
+        compiler.gen_at_end_of_block(gen_at_end_of_block)
 
 
 # Operators who receive their parameters on the right, such as ++x and int

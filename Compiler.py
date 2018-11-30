@@ -1,4 +1,5 @@
 import os
+import Parser
 
 
 class Compiler:
@@ -28,7 +29,14 @@ class Compiler:
             self.write_error("Over indented block")
             return
         while indent < len(self.block_stack):
-            self.write_code(self.block_stack.pop())
+            curr = self.block_stack.pop()
+            if list != type(curr):
+                curr = [curr]
+            for i in curr:
+                if isinstance(i, Parser.ASTNode):
+                    i.generate_code(self)
+                else:
+                    self.write_code(i)
 
     def gen_at_end_of_block(self, code):
         self.block_stack.append(code)
