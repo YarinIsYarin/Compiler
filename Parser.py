@@ -25,8 +25,8 @@ def parse(line):
         for word in line:
             # Deal things like x[3] and int[3]
             if BracketsBlock == type(word):
-                if RValueUnaryOperator != type(prev) and Identifier != type(prev):
-                    compiler.messages.write_error("Random array index")
+                if Declaration != type(prev) and Identifier != type(prev):
+                    compiler.write_error("Random array index")
                 prev.add_data(word.data)
                 line.remove(word)
                 word = None
@@ -45,6 +45,10 @@ def ast_node_factory(token, data):
     if token == Token.unary_op:
         if data in Priorities.left_value_unary_op.keys():
             return LValueUnaryOperator(data)
+        if "int" == data:
+            return Declaration(data)
+        if "if" == data:
+            return If(data)
         return RValueUnaryOperator(data)
     if token == Token.identifier:
         return Identifier(data)
@@ -68,6 +72,7 @@ class ASTNode:
         self.additional_data = additional_data
     
     def get_priority(self): return self.priority
+
     def add_data(self, data): self.additional_data = data
         
     def parse(self, line):
@@ -115,7 +120,7 @@ class BinaryOperator(ASTNode):
                 self.params[1].parse(line[line.index(self)+1:])
                 return
 
-        compiler.messages.write_error("Binary operator " + self.action + " requires two parameters")
+        compiler.write_error("Binary operator " + self.action + " requires two parameters")
 
     def generate_code(self, output):
         if 2 != len(self.params):
@@ -127,30 +132,30 @@ class BinaryOperator(ASTNode):
             if self.params[1]:
                 self.params[1].generate_code(output)
                 if self.params[0]:
-                    output.code_gen.write_code("pop " + str(self.params[0].get_name(output)))
+                    output.write_code("pop " + str(self.params[0].get_name(output)))
             return
         if self.action in ['+', '-', '*']:
             if self.params[1] is not None:
                 self.params[1].generate_code(output)
             if self.params[0] is not None:
                 self.params[0].generate_code(output)
-            output.code_gen.write_code("pop rax")
-            output.code_gen.write_code("pop rbx")
-            output.code_gen.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
-            output.code_gen.write_code("push rax")
+            output.write_code("pop rax")
+            output.write_code("pop rbx")
+            output.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
+            output.write_code("push rax")
             return
         if '/' == self.action:
             if self.params[0] is not None:
                 self.params[0].generate_code(output)
             if self.params[1] is not None:
                 self.params[1].generate_code(output)
-            output.code_gen.write_code("mov edx, 0")
-            output.code_gen.write_code("mov ax, 0")
-            output.code_gen.write_code("mov bx, 0")
-            output.code_gen.write_code("pop rbx")
-            output.code_gen.write_code("pop rax")
-            output.code_gen.write_code("div ebx")
-            output.code_gen.write_code("push rax")
+            output.write_code("mov edx, 0")
+            output.write_code("mov ax, 0")
+            output.write_code("mov bx, 0")
+            output.write_code("pop rbx")
+            output.write_code("pop rax")
+            output.write_code("div ebx")
+            output.write_code("push rax")
             return
 
         print("Error: unknown binary operator")
@@ -161,16 +166,42 @@ class LValueUnaryOperator(ASTNode):
     def __init__(self, action):
         ASTNode.__init__(Priorities.left_value_unary_op[action], action)
 
-    # Receive a list of ASTNode
+    # Receives a list of ASTNode
     def parse(self, line):
         self.params.append(find_highest_priority(line[:line.index(self)]))
         self.params.append(parse(line[:line.index(self)]))
 
 
-# Operators who receive their parameters on the right, such as ++x and int
 class RValueUnaryOperator(ASTNode):
     def __init__(self, action, additional_data=None):
         ASTNode.__init__(self, Priorities.right_value_unary_op[action], action, additional_data)
+
+    # Receives a list of ASTNode
+    def parse(self, line):
+        self.params.append(find_highest_priority(line[line.index(self) + 1:]))
+        if len(self.params) < 1 or not self.params[0]:
+            compiler.write_error(self.action + " requires 1 argument")
+            return
+        self.params[0].parse(line[line.index(self) + 1:])
+
+
+class If(RValueUnaryOperator):
+    def __init__(self, action, additional_data=None):
+        RValueUnaryOperator.__init__(self, action, additional_data)
+
+    def generate_code(self, output):
+        self.params[0].generate_code(output)
+        compiler.write_code("pop rax")
+        compiler.write_code("cmp rax, 0")
+        end_of_if = compiler.label_gen()
+        compiler.write_code("je " + end_of_if)
+        compiler.gen_at_end_of_block(end_of_if + ":")
+
+
+# Operators who receive their parameters on the right, such as ++x and int
+class Declaration(RValueUnaryOperator):
+    def __init__(self, action, additional_data=None):
+        RValueUnaryOperator.__init__(self, action, additional_data)
 
     # To add parameters such as []
     def add_data(self, new_data):
@@ -185,7 +216,7 @@ class RValueUnaryOperator(ASTNode):
     def parse(self, line):
         self.params.append(find_highest_priority(line[line.index(self) + 1:]))
         if len(self.params) < 1 or not self.params[0]:
-            compiler.messages.write_error(self.action + " missing a name")
+            compiler.write_error(self.action + " missing a name")
             return
         self.params[0].parse(line[line.index(self) + 1:])
 
@@ -193,23 +224,23 @@ class RValueUnaryOperator(ASTNode):
         if self.action == "int":
             if type(self.params[0]) is Identifier:
                 var_name = self.params[0].action
-                if var_name in compiler.code_gen.known_vars:
-                    compiler.messages.write_error(var_name + " is already defined")
+                if var_name in compiler.known_vars:
+                    compiler.write_error(var_name + " is already defined")
                 # If this is an array
                 if self.additional_data:
-                    output.code_gen.known_vars[self.params[0].action] = "int[]"
-                    output.code_gen.write_data(self.params[0].action + " qword " +
+                    output.known_vars[self.params[0].action] = "int[]"
+                    output.write_data(self.params[0].action + " qword " +
                                                str(self.additional_data.params[0]) + " dup (0)")
                     var_name = self.params[0].action
                     return var_name
                 # Not an array
-                output.code_gen.known_vars[self.params[0].action] = "int"
-                output.code_gen.write_data(self.params[0].action + " qword 0")
+                output.known_vars[self.params[0].action] = "int"
+                output.write_data(self.params[0].action + " qword 0")
                 var_name = self.params[0].action
                 return var_name
                 return var_name
             if self.params[0]:
-                output.messages.write_error(self.params[0].action + " is not a valid int name")
+                output.write_error(self.params[0].action + " is not a valid int name")
 
 
 class Immediate(ASTNode):
@@ -220,7 +251,7 @@ class Immediate(ASTNode):
         pass
 
     def generate_code(self, output):
-        output.code_gen.write_code("push " + self.action)
+        output.write_code("push " + self.action)
 
 
 class Identifier(ASTNode):
@@ -234,11 +265,11 @@ class Identifier(ASTNode):
         self.additional_data = data
 
     def get_name(self, output):
-        if self.action not in compiler.code_gen.known_vars:
-            output.messages.write_error("Unknown variable " + self.action)
+        if self.action not in compiler.known_vars:
+            output.write_error("Unknown variable " + self.action)
             return self.action
         if self.additional_data and compiler.code_gen.known_vars[self.action] != "int[]":
-            compiler.messages.write_error(self.action + " is not an array")
+            compiler.write_error(self.action + " is not an array")
             return self.action
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
@@ -249,18 +280,18 @@ class Identifier(ASTNode):
         return self.action
 
     def generate_code(self, output):
-        if self.action not in output.code_gen.known_vars:
-            output.messages.write_error("Unknown variable " + self.action)
+        if self.action not in output.known_vars:
+            output.write_error("Unknown variable " + self.action)
             return self.action
-        if self.additional_data and compiler.code_gen.known_vars[self.action] != "int[]":
-            compiler.messages.write_error(self.action + " is not an array")
+        if self.additional_data and compiler.known_vars[self.action] != "int[]":
+            compiler.write_error(self.action + " is not an array")
             return self.action
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
             self.additional_data.generate_code(output)
-            output.code_gen.write_code("pop rbx")
-            output.code_gen.write_code("imul rbx, 8")
-            output.code_gen.write_code("push [" + self.action + " + rbx]")
+            output.write_code("pop rbx")
+            output.write_code("imul rbx, 8")
+            output.write_code("push [" + self.action + " + rbx]")
         else:
-            output.code_gen.write_code("push " + self.action)
+            output.write_code("push " + self.action)
         return self.action

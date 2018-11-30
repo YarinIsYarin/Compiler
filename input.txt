@@ -1,15 +1,12 @@
-int x = 1
-int x = 2
 int x = 3
-y = 3 +
-int y = x[3]
-y = y + 15
-#y = 3 + *
-3 = 12
-y = (
-z = 30
-int hello = 8
-int hell = 9
-(3+) = 3
-int = 12
-x = [3]
+int y = 4
+if y
+    x = 17
+    if y+2
+        x = x - 13
+        if y - 4
+            x = 0
+        # indent holder
+        if y - y + 1
+            x = x*2
+x = x

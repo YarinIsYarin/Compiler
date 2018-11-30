@@ -60,6 +60,8 @@ def lex(source, output):
             yield (Token.comment, "#")
         elif "eof" == word:
             yield (Token.new_line, "\n")
+        elif " " == word:
+            yield (Token.space, " ")
         else:
             yield (Token.identifier, word)
 
@@ -72,6 +74,7 @@ def read_word(text):
             if word != "":
                 yield word
                 word = ""
+            yield " "
         # Deal with things like 3*4
         elif not char.isalnum() and char != "_":
             if word != "":
