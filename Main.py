@@ -43,7 +43,6 @@ if output.errors > 0:
     print("File had " + str(output.errors) + " errors")
 else:
     print("Compiled successfully!")
-    #print([i[0] for i in output.code_gen.known_vars])
 # For debugging, prints the AST tree of every line
 def dfs (root):
     print("{", end='')
@@ -53,7 +52,9 @@ def dfs (root):
         if len(root.params) > 1:
             dfs(root.params[1])
     print("}", end='')
-'''''
-for line in lines:
-    dfs(line[1])
-    print()'''
+
+# For debugging!
+if False:
+    for line in lines:
+        dfs(line[1])
+        print()

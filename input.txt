@@ -1,4 +1,4 @@
-# We can finally calc the Fibonacci sequence
+// We can finally calc the Fibonacci sequence
 int element_number = 10
 int a = 1
 int b = 1
@@ -8,5 +8,5 @@ while element_number - 1
     a = b
     b = c
     element_number = element_number - 1
-# This will put a in rax
+// This will put a in rax
 a = a + 0

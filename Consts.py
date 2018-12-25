@@ -19,7 +19,7 @@ class Token(Enum):
 
 
 class Priorities:
-    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, }
+    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, }
     right_value_unary_op = {"int": 10, "if": 50, "while": 50}
     left_value_unary_op = {}
 

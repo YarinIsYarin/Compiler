@@ -56,7 +56,7 @@ def lex(source, output):
                 output.messages.write_error("Missing parentheses")
                 yield (Token.immediate, "1")
                 yield(Token.new_line, "\n")
-        elif "#" == word:
+        elif "//" == word:
             yield (Token.comment, "#")
         elif "eof" == word:
             yield (Token.new_line, "\n")
@@ -68,22 +68,33 @@ def lex(source, output):
 
 # Reads a text word by word
 def read_word(text):
+    # reading something with a few non islanum such as <= and ++
+    expr_flag = False
     word = ""
     for char in text:
-        if char == " ":
-            if word != "":
-                yield word
-                word = ""
-            yield " "
-        # Deal with things like 3*4
-        elif not char.isalnum() and char != "_":
+        if char == " " or char == '\n':
             if word != "":
                 yield word
                 word = ""
             yield char
-            continue
         else:
-            word += char
+            if expr_flag:
+                if char in ['<', '>', '=', '+', '-', '*','/']:
+                    word += char
+                    #print("this word is : |" + word + "|")
+                else:
+                    #print("char is : " + char + " word is " + word)
+                    if word != "":
+                        yield word
+                    word = char
+                    expr_flag = False
+            elif char in ['<', '>', '=', '+', '-', '*', '/']:
+                expr_flag = True
+                if word != "":
+                    yield word
+                word = char
+            else:
+                word += char
     if word != "":
         yield word
     yield "eof"

@@ -129,7 +129,7 @@ class BinaryOperator(ASTNode):
             return
         if "=" == self.action:
             if not (isinstance(self.params[0], Identifier) or self.params[0].action == "int"):
-                compiler.messages.write_error("Can't change the value of " + str(self.params[0]))
+                compiler.write_error("Can't change the value of " + str(self.params[0]))
                 return
             if self.params[1]:
                 self.params[1].generate_code(output)
