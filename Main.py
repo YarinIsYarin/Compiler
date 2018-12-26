@@ -1,10 +1,10 @@
 from Lexer import lex
-import Consts
 import Parser
 import Compiler
+import Consts
 
 output = Compiler.Compiler("output", "input")
-Parser.compiler = output
+Consts.compiler = output
 lines = []
 curr_line = []
 comment_flag = False
@@ -33,11 +33,12 @@ for word in lex(open("input.txt", 'r').read(), output):
         curr_line = []
         comment_flag = False
 
+print(Consts.compiler)
 output.line_number = 0
 for line in lines:
     output.next_line(line[0])
     if line[1]:
-        line[1].generate_code(output)
+        line[1].generate_code()
 output.generate_code()
 if output.errors > 0:
     print("File had " + str(output.errors) + " errors")

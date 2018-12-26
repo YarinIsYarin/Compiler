@@ -8,5 +8,4 @@ while element_number - 1
     a = b
     b = c
     element_number = element_number - 1
-// This will put a in rax
 a = a + 0

@@ -3,6 +3,7 @@
 # Note that this file can also be used to tell the type of all the keyword in the language
 from enum import Enum, auto
 
+compiler = None
 
 class Token(Enum):
     new_line = auto()
@@ -19,7 +20,7 @@ class Token(Enum):
 
 
 class Priorities:
-    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90 }
+    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90}
     right_value_unary_op = {"int": 10, "if": 50, "while": 50}
     left_value_unary_op = {"++": 30, "--": 30}
 

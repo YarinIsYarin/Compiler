@@ -44,7 +44,7 @@ def lex(source, output):
                 #print("tempy " + str(temp))
                 yield (Token.parentheses_block, temp)
             except Exception:
-                output.messages.write_error("Missing parentheses")
+                output.write_error("Missing parentheses")
                 yield(Token.immediate, "1")
                 yield (Token.new_line, "\n")
         elif "[" == word:

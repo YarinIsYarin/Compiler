@@ -34,7 +34,7 @@ class Compiler:
                 curr = [curr]
             for i in curr:
                 if isinstance(i, Parser.ASTNode):
-                    i.generate_code(self)
+                    i.generate_code()
                 else:
                     self.write_code(i)
 
