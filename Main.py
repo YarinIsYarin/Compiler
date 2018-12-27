@@ -1,5 +1,5 @@
 from Lexer import lex
-import Parser
+from Parser import ast_node_factory, parse
 import Compiler
 import Consts
 
@@ -23,9 +23,9 @@ for word in lex(open("input.txt", 'r').read(), output):
             if Consts.Token.comment == word[0]:
                 comment_flag = True
             elif Consts.Token.space != word[0]:
-                curr_line.append(Parser.ast_node_factory(word[0], word[1]))
+                curr_line.append(ast_node_factory(word[0], word[1]))
     else:
-        lines.append((int(indent / 4), Parser.parse(curr_line)))
+        lines.append((int(indent / 4), parse(curr_line)))
         stat_of_line_flag = True
         indent = 0
         #print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # For debugging
@@ -33,7 +33,6 @@ for word in lex(open("input.txt", 'r').read(), output):
         curr_line = []
         comment_flag = False
 
-print(Consts.compiler)
 output.line_number = 0
 for line in lines:
     output.next_line(line[0])

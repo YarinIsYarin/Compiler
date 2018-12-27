@@ -43,6 +43,7 @@ def find_highest_priority(line):
 # turns a list of ASTNode into an ast tree
 # Returns the root of the tree
 from UnaryOperator import Declaration
+from NullaryOperator import Identifier, BracketsBlock
 def parse(line):
     if len(line) > 1:
         prev = None
@@ -63,25 +64,6 @@ def parse(line):
         # print("root is: " + str(root))
         return root
 
-
-class BracketsBlock:
-    def __init__(self, data):
-        self.data = data
-
-
-class ParenthesesBlock(ASTNode):
-    def __init__(self, action):
-        ASTNode.__init__(self, 0, "")
-        self.params = [ast_node_factory(i[0], i[1]) for i in action]
-
-    def parse(self, line):
-        self.params = [parse(self.params)]
-
-    def generate_code(self):
-        return self.params[0].generate_code()
-
-    def __str__(self):
-        return str(self.params[0])
 
 from BinaryOperator import BinaryOperator_factory
 from UnaryOperator import UnaryOperator_factory

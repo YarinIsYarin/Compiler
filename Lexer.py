@@ -52,7 +52,6 @@ def lex(source, output):
                 temp = lex_with_parentheses(text, '[', output)
                 yield (Token.brackets_block, temp)
             except Exception:
-                print("hell")
                 output.messages.write_error("Missing parentheses")
                 yield (Token.immediate, "1")
                 yield(Token.new_line, "\n")
@@ -72,11 +71,18 @@ def read_word(text):
     expr_flag = False
     word = ""
     for char in text:
-        if char == " " or char == '\n':
+        # Because /// is also a comment just like //
+        if "//" == word:
+            yield word
+            word = ""
+            expr_flag = False
+
+        if char in [" ", "\n", ')', '(', '[', ']']:
             if word != "":
                 yield word
                 word = ""
             yield char
+            expr_flag = False
         else:
             if expr_flag:
                 if char in ['<', '>', '=', '+', '-', '*','/']:
