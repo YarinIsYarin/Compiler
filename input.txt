@@ -1,12 +1,11 @@
-// We can finally calc the Fibonacci sequence
-int element_number = 10
+int element_to_calc = 10
+element_to_calc--
 int a = 1
 int b = 1
 int c
-while element_number - 1
-    c = a + b
+
+while element_to_calc
+    c = a+b
     a = b
     b = c
-    element_number = element_number - 1
-// This will put a in rax
-a = a + 0
+    element_to_calc--

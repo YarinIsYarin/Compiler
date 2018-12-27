@@ -1,29 +1,29 @@
-from Parser import *
+from Parser import ASTNode, find_highest_priority
 from Consts import Priorities
 from NullaryOperator import Identifier
 import Consts
 
 
 def UnaryOperator_factory(data):
-    if data in Priorities.left_value_unary_op.keys():
-        return LValueUnaryOperator(data)
     if "int" == data:
         return Declaration(data)
     if "if" == data:
         return If(data)
     if "while" == data:
         return While(data)
+    if data in ["++", "--"]:
+        return BasicLValue(data)
 
 
 # Operators who receive their parameters on the left, such as x++
 class LValueUnaryOperator(ASTNode):
     def __init__(self, action):
-        ASTNode.__init__(Priorities.left_value_unary_op[action], action)
+        ASTNode.__init__(self, Priorities.left_value_unary_op[action], action)
 
     # Receives a list of ASTNode
     def parse(self, line):
         self.params.append(find_highest_priority(line[:line.index(self)]))
-        self.params.append(parse(line[:line.index(self)]))
+        self.params[0].parse(line[:line.index(self)])
 
 
 class RValueUnaryOperator(ASTNode):
@@ -106,3 +106,21 @@ class Declaration(RValueUnaryOperator):
                 return var_name
             if self.params[0]:
                 Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
+
+# For ++ and --
+class BasicLValue(LValueUnaryOperator):
+    def __init__(self, data):
+        LValueUnaryOperator.__init__(self, data)
+
+    def generate_code(self):
+        if 1 != len(self.params):
+            return
+        if not isinstance(self.params[0], Identifier):
+            Consts.compiler.write_error("Can't change the value of " + str(self.params[0]))
+            return
+        if self.params[0]:
+            self.params[0].generate_code()
+            Consts.compiler.write_code("pop rax")
+            Consts.compiler.write_code({"++": "inc", "--": "dec"}[self.action] + " rax")
+            Consts.compiler.write_code("mov " + self.params[0].get_name() + ", rax")
+        return

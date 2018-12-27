@@ -26,9 +26,9 @@ for word in lex(open("input.txt", 'r').read(), output):
                 curr_line.append(ast_node_factory(word[0], word[1]))
     else:
         lines.append((int(indent / 4), parse(curr_line)))
+        #print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # For debugging
         stat_of_line_flag = True
         indent = 0
-        #print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # For debugging
         output.next_line()
         curr_line = []
         comment_flag = False
