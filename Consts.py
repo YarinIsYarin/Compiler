@@ -7,6 +7,7 @@ compiler = None
 
 class Token(Enum):
     new_line = auto()
+    nullary_op = auto()
     unary_op = auto()
     binary_op = auto()
     immediate = auto()
@@ -19,9 +20,16 @@ class Token(Enum):
     space = auto()
 
 
+class Blocks(Enum):
+    main_block = auto()
+    if_block = auto()
+    else_block = auto()
+    elif_block = auto()
+    while_block = auto()
+
+
 class Priorities:
     binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90}
-    right_value_unary_op = {"int": 10, "if": 50, "while": 50}
+    right_value_unary_op = {"int": 10, "if": 50, "elif": 50, "while": 50}
     left_value_unary_op = {"++": 30, "--": 30}
-
-
+    nullary_op = {"else": 50}

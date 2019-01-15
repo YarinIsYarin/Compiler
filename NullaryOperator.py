@@ -17,9 +17,11 @@ class ParenthesesBlock(ASTNode):
     def __str__(self):
         return str(self.params[0])
 
+
 class BracketsBlock:
     def __init__(self, data):
         self.data = Parser.ast_node_factory(Token.parentheses_block, data)
+
 
 def NullaryOperator_factory(token, data):
     if token == Token.identifier:
@@ -30,8 +32,27 @@ def NullaryOperator_factory(token, data):
         return ParenthesesBlock(data)
     if token == Token.brackets_block:
         return BracketsBlock(data)
+    if data == "else":
+        return Else(data)
 
 
+class Else(ASTNode):
+    def __init__(self, action):
+        ASTNode.__init__(self, 50, action)
+
+    def parse(self, line):
+        pass
+
+    def generate_code(self):
+        if Consts.compiler.which_block_am_i.pop() not in [Consts.Blocks.if_block, Consts.Blocks.elif_block]:
+            Consts.compiler.write_error("Else can be applied only to if and elif")
+            return
+        Consts.compiler.which_block_am_i.append(Consts.Blocks.else_block)
+        end_else_label = Consts.compiler.label_gen()
+        end_if_label = Consts.compiler.block_stack.pop()
+        Consts.compiler.write_code("jmp " + end_else_label)
+        Consts.compiler.write_code(end_if_label)
+        Consts.compiler.gen_at_end_of_block(end_else_label + ":")
 
 
 class Immediate(ASTNode):
@@ -67,7 +88,8 @@ class Identifier(ASTNode):
             self.additional_data.generate_code()
             Consts.compiler.write_code("pop rbx")
             Consts.compiler.write_code("imul rbx, 8")
-            return "[" + self.action + " + rbx]"
+            Consts.compiler.write_code("add rbx, " + self.action)
+            return "[rbx]"
         return self.action
 
     def generate_code(self):
@@ -82,7 +104,8 @@ class Identifier(ASTNode):
             self.additional_data.generate_code()
             Consts.compiler.write_code("pop rbx")
             Consts.compiler.write_code("imul rbx, 8")
-            Consts.compiler.write_code("push [" + self.action + " + rbx]")
+            Consts.compiler.write_code("add rbx, " + self.action )
+            Consts.compiler.write_code("push [rbx]")
         else:
             Consts.compiler.write_code("push " + self.action)
         return self.action

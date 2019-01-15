@@ -15,7 +15,7 @@ indent = 0
 for word in lex(open("input.txt", 'r').read(), output):
     if word[0] != Consts.Token.new_line:
         if not comment_flag:
-            #print(word) #deb
+            # print(word) #deb
             if Consts.Token.space != word[0]:
                 stat_of_line_flag = False
             if Consts.Token.space == word[0] and stat_of_line_flag:
@@ -23,10 +23,12 @@ for word in lex(open("input.txt", 'r').read(), output):
             if Consts.Token.comment == word[0]:
                 comment_flag = True
             elif Consts.Token.space != word[0]:
+                if word[1] in ["else", "elif"]:
+                    indent += 4
                 curr_line.append(ast_node_factory(word[0], word[1]))
     else:
+        print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # deb
         lines.append((int(indent / 4), parse(curr_line)))
-        #print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # For debugging
         stat_of_line_flag = True
         indent = 0
         output.next_line()
@@ -34,10 +36,13 @@ for word in lex(open("input.txt", 'r').read(), output):
         comment_flag = False
 
 output.line_number = 0
+inp = open("input.txt", 'r')
 for line in lines:
     output.next_line(line[0])
     if line[1]:
+        output.write_code("\n\t;" + inp.readline()[0:-1])
         line[1].generate_code()
+        output.write_code("")
 output.generate_code()
 if output.errors > 0:
     print("File had " + str(output.errors) + " errors")

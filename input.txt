@@ -1,11 +1,12 @@
-int element_to_calc = 10
-element_to_calc--
-int a = 1
-int b = 1
-int c
+int i = 0
+int len = 8
+int[len] arg
 
-while element_to_calc
-    c = a+b
-    a = b
-    b = c
-    element_to_calc--
+while i - len
+    arg[i] = i
+    i++
+i = 0
+int sum = 0
+while i - len
+    sum = sum + arg[i]
+    i++

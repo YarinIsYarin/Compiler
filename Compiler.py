@@ -6,6 +6,8 @@ class Compiler:
     def __init__(self, output_name, input_name):
         # This hold what we need to do at the end of each block
         self.block_stack = []
+        # A stack that save the type of block we are currently in (such as if, else and etc)
+        self.which_block_am_i = ["Main"]
         self.line_number = 1
         self.output_name = output_name
         self.code_seg_name = output_name + "_code_seg.txt"
@@ -37,6 +39,8 @@ class Compiler:
                     i.generate_code()
                 else:
                     self.write_code(i)
+        while indent < len(self.which_block_am_i) - 1:
+            self.which_block_am_i.pop()
 
     def gen_at_end_of_block(self, code):
         self.block_stack.append(code)
@@ -62,9 +66,13 @@ class Compiler:
         output.write("ExitProcess proto\n\n")
         output.write(".data\n")
         data_seg = open(self.data_seg_name, 'r')
+        # This is used so that we know where we cant start to use the ds as dynamic memory
         output.write(data_seg.read())
+        output.write("startOfHeap qword 0\n")
         output.write("\n.code\n")
         output.write("main proc\n")
+        # We use rcx to count how much memory we are using, 64 is a nice value
+        output.write("\tmov rcx, offset startOfHeap\n")
         code_seg = open(self.code_seg_name, 'r')
         output.write(code_seg.read())
         output.write("\nmov   ecx,0\n")

@@ -9,6 +9,8 @@ def UnaryOperator_factory(data):
         return Declaration(data)
     if "if" == data:
         return If(data)
+    if "elif" == data:
+        return Elif(data)
     if "while" == data:
         return While(data)
     if data in ["++", "--"]:
@@ -44,6 +46,7 @@ class If(RValueUnaryOperator):
         RValueUnaryOperator.__init__(self, action, additional_data)
 
     def generate_code(self):
+        Consts.compiler.which_block_am_i.append(Consts.Blocks.if_block)
         self.params[0].generate_code()
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("cmp rax, 0")
@@ -57,6 +60,7 @@ class While(RValueUnaryOperator):
         RValueUnaryOperator.__init__(self, action, additional_data)
 
     def generate_code(self):
+        Consts.compiler.which_block_am_i.append(Consts.Blocks.while_block)
         start_of_loop = Consts.compiler.label_gen()
         end_of_loop = Consts.compiler.label_gen()
         Consts.compiler.write_code("jmp " + end_of_loop)
@@ -95,8 +99,11 @@ class Declaration(RValueUnaryOperator):
                 # If this is an array
                 if self.additional_data:
                     Consts.compiler.known_vars[self.params[0].action] = "int[]"
-                    Consts.compiler.write_data(self.params[0].action + " qword " +
-                                      str(self.additional_data.params[0]) + " dup (0)")
+                    Consts.compiler.write_data(self.params[0].action + " qword 0")
+                    Consts.compiler.write_code("mov " + self.params[0].action + " , rcx")
+                    Consts.compiler.write_code("mov rax, " + str(self.additional_data.params[0]))
+                    Consts.compiler.write_code("imul rax, 8")
+                    Consts.compiler.write_code("add rcx, rax")
                     var_name = self.params[0].action
                     return var_name
                 # Not an array
@@ -106,6 +113,7 @@ class Declaration(RValueUnaryOperator):
                 return var_name
             if self.params[0]:
                 Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
+
 
 # For ++ and --
 class BasicLValue(LValueUnaryOperator):
