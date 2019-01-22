@@ -40,6 +40,8 @@ def lex(source, output):
             yield (Token.binary_op, word)
         elif word in Priorities.nullary_op:
             yield (Token.nullary_op, word)
+        elif word in Priorities.prefix:
+            yield (Token.prefix, word)
         elif "(" == word:
             try:
                 temp = lex_with_parentheses(text, '(', output)

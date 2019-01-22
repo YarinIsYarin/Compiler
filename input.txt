@@ -1,12 +1,15 @@
-int i = 0
-int len = 8
-int[len] arg
+int len = 300
+int[len] nums
 
-while i - len
-    arg[i] = i
-    i++
-i = 0
+int k = 0
+while k - len
+    nums[k] = k + 1
+    k++
+
 int sum = 0
-while i - len
-    sum = sum + arg[i]
-    i++
+k = 0
+while k - len
+    sum = sum + nums[k]
+    k++
+
+

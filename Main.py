@@ -27,7 +27,7 @@ for word in lex(open("input.txt", 'r').read(), output):
                     indent += 4
                 curr_line.append(ast_node_factory(word[0], word[1]))
     else:
-        print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # deb
+        #print("line " + str(output.line_number) + " is: " + str([str(i) for i in curr_line])) # deb
         lines.append((int(indent / 4), parse(curr_line)))
         stat_of_line_flag = True
         indent = 0
@@ -40,7 +40,7 @@ inp = open("input.txt", 'r')
 for line in lines:
     output.next_line(line[0])
     if line[1]:
-        output.write_code("\n\t;" + inp.readline()[0:-1])
+        output.write_code("\t;" + inp.readline()[0:-1])
         line[1].generate_code()
         output.write_code("")
 output.generate_code()

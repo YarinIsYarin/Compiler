@@ -32,6 +32,8 @@ def NullaryOperator_factory(token, data):
         return ParenthesesBlock(data)
     if token == Token.brackets_block:
         return BracketsBlock(data)
+    if token == token.prefix:
+        return Prefix(data)
     if data == "else":
         return Else(data)
 
@@ -69,12 +71,16 @@ class Immediate(ASTNode):
 class Identifier(ASTNode):
     def __init__(self, action):
         ASTNode.__init__(self, 0, action)
+        self.isGlobal = False
 
     def parse(self, line):
         pass
 
     def add_data(self, data):
         self.additional_data = data
+
+    def set_global(self):
+        self.isGlobal = True
 
     def get_name(self):
         if self.action not in Consts.compiler.known_vars:
@@ -83,14 +89,15 @@ class Identifier(ASTNode):
         if self.additional_data and Consts.compiler.known_vars[self.action] != "int[]":
             Consts.compiler.write_error(self.action + " is not an array")
             return self.action
+        var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
             self.additional_data.generate_code()
             Consts.compiler.write_code("pop rbx")
             Consts.compiler.write_code("imul rbx, 8")
-            Consts.compiler.write_code("add rbx, " + self.action)
+            Consts.compiler.write_code("add rbx, " + var_name)
             return "[rbx]"
-        return self.action
+        return var_name
 
     def generate_code(self):
         if self.action not in Consts.compiler.known_vars:
@@ -99,15 +106,18 @@ class Identifier(ASTNode):
         if self.additional_data and Consts.compiler.known_vars[self.action] != "int[]":
             Consts.compiler.write_error(self.action + " is not an array")
             return self.action
+        var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
         if self.additional_data:
             self.additional_data.parse([self.additional_data])
             self.additional_data.generate_code()
             Consts.compiler.write_code("pop rbx")
             Consts.compiler.write_code("imul rbx, 8")
-            Consts.compiler.write_code("add rbx, " + self.action )
+            Consts.compiler.write_code("add rbx, " + var_name)
             Consts.compiler.write_code("push [rbx]")
         else:
-            Consts.compiler.write_code("push " + self.action)
-        return self.action
+            Consts.compiler.write_code("push " + var_name)
+        return var_name
 
-
+class Prefix:
+    def __int__(self, data):
+        self.data = data

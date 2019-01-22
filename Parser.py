@@ -43,7 +43,7 @@ def find_highest_priority(line):
 # turns a list of ASTNode into an ast tree
 # Returns the root of the tree
 from UnaryOperator import Declaration
-from NullaryOperator import Identifier, BracketsBlock
+from NullaryOperator import Identifier, BracketsBlock, Prefix
 def parse(line):
     if len(line) > 1:
         prev = None
@@ -58,10 +58,13 @@ def parse(line):
                 word = None
             if word:
                 prev = word
+            if prev == type(Prefix):
+                if Identifier != type(word):
+                    Consts.compiler.write_error("Only a variable can be global")
     if line:
         root = find_highest_priority(line)
         root.parse(line)
-        # print("root is: " + str(root))
+        #print("root is: " + root)
         return root
 
 
@@ -76,6 +79,3 @@ def ast_node_factory(token, data):
     if token == Token.unary_op:
         return UnaryOperator_factory(data)
     return NullaryOperator_factory(token, data)
-
-
-

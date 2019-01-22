@@ -4,6 +4,11 @@ import Parser
 
 class Compiler:
     def __init__(self, output_name, input_name):
+        # In the current local memory part of the stack, how many qwords did I use
+        self.stack_used = [0]
+        # Given a var, how much do we need to sub from bp to get that var
+        self.where_on_stack = [{}]
+        self.known_vars = {}
         # This hold what we need to do at the end of each block
         self.block_stack = []
         # A stack that save the type of block we are currently in (such as if, else and etc)
@@ -14,7 +19,6 @@ class Compiler:
         self.data_seg_name = output_name + "_data_seg.txt"
         open(self.code_seg_name, 'w')
         open(self.data_seg_name, 'w')
-        self.known_vars = {}
         self.last_label = "$"
         self.lines = open(input_name + '.txt').readlines()
         self.output_file = open(output_name + " errors.txt", 'w')
@@ -73,8 +77,11 @@ class Compiler:
         output.write("main proc\n")
         # We use rcx to count how much memory we are using, 64 is a nice value
         output.write("\tmov rcx, offset startOfHeap\n")
+        output.write("\tmov rbp, rsp\n")
+        output.write("\tadd rbp, " + str(self.stack_used[-1]) + "\n")
         code_seg = open(self.code_seg_name, 'r')
         output.write(code_seg.read())
+        output.write("\tsub rbp, " + str(self.stack_used[-1]) + "\n")
         output.write("\nmov   ecx,0\n")
         output.write("call  ExitProcess\n")
         output.write("main endp\n")
@@ -89,4 +96,7 @@ class Compiler:
         # TODO: make a better one
         self.last_label += "a"
         return self.last_label
+
+    def get_var_stack_place(self, var_name):
+        return self.where_on_stack[-1][var_name]
 

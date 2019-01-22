@@ -18,6 +18,7 @@ class Token(Enum):
     comment = auto()
     missing_parentheses = auto()
     space = auto()
+    prefix = auto()
 
 
 class Blocks(Enum):
@@ -33,3 +34,4 @@ class Priorities:
     right_value_unary_op = {"int": 10, "if": 50, "elif": 50, "while": 50}
     left_value_unary_op = {"++": 30, "--": 30}
     nullary_op = {"else": 50}
+    prefix = ["global"]
