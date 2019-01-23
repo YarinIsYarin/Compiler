@@ -1,6 +1,6 @@
 from Parser import ASTNode, find_highest_priority
 from Consts import Priorities
-from NullaryOperator import Identifier
+from NullaryOperator import Identifier, ParenthesesBlock
 import Consts
 
 
@@ -47,6 +47,8 @@ class If(RValueUnaryOperator):
 
     def generate_code(self):
         Consts.compiler.which_block_am_i.append(Consts.Blocks.if_block)
+        if type(self.params[0]) is not ParenthesesBlock:
+            Consts.compiler.write_error("Condition must be in parentheses")
         self.params[0].generate_code()
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("cmp rax, 0")
@@ -60,6 +62,8 @@ class While(RValueUnaryOperator):
         RValueUnaryOperator.__init__(self, action, additional_data)
 
     def generate_code(self):
+        if type(self.params[0]) is not ParenthesesBlock:
+            Consts.compiler.write_error("Condition must be in parentheses")
         Consts.compiler.which_block_am_i.append(Consts.Blocks.while_block)
         start_of_loop = Consts.compiler.label_gen()
         end_of_loop = Consts.compiler.label_gen()

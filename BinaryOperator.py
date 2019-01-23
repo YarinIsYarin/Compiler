@@ -12,6 +12,8 @@ def BinaryOperator_factory(data):
         return Equals(data)
     if "/" == data:
         return Division(data)
+    if data in ["==", ">", "<", ">=", "=>", "<=", "=<", "!="]:
+        return Compare(data)
 
 
 class BinaryOperator(Parser.ASTNode):
@@ -88,4 +90,30 @@ class Equals(BinaryOperator):
             self.params[1].generate_code()
             if self.params[0]:
                 Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
+        return
+
+
+class Compare(BinaryOperator):
+    def __init__(self, action):
+        BinaryOperator.__init__(self, action)
+
+    def generate_code(self):
+        if 2 != len(self.params):
+            return
+        if self.params[0] is not None:
+            self.params[0].generate_code()
+        if self.params[1] is not None:
+            self.params[1].generate_code()
+        Consts.compiler.write_code("pop rbx")
+        Consts.compiler.write_code("pop rax")
+        Consts.compiler.write_code("cmp rax, rbx")
+        true = Consts.compiler.label_gen()
+        false = Consts.compiler.label_gen()
+        Consts.compiler.write_code({">": "jg", "<": "jl", "<=": "jle", "=<": "jle", ">=": "jge",
+                                    "=>": "jge", "==": "je", "!=": "jne"}[self.action] + " " + true)
+        Consts.compiler.write_code("push 0")
+        Consts.compiler.write_code("jmp " + false)
+        Consts.compiler.write_code(true + ":")
+        Consts.compiler.write_code("push 1")
+        Consts.compiler.write_code(false + ":")
         return

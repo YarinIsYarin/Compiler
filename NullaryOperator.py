@@ -6,7 +6,7 @@ import Consts
 class ParenthesesBlock(ASTNode):
     def __init__(self, action):
         ASTNode.__init__(self, 0, "")
-        self.params = [Parser.ast_node_factory(i[0], i[1]) for i in action]
+        self.params = [Parser.ast_node_factory(i[0], i[1]) for i in action if i[0] != Token.space]
 
     def parse(self, line):
         self.params = [Parser.parse(self.params)]

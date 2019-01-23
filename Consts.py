@@ -30,8 +30,9 @@ class Blocks(Enum):
 
 
 class Priorities:
-    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90}
-    right_value_unary_op = {"int": 10, "if": 50, "elif": 50, "while": 50}
+    binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90,
+                 ">": 90, "<": 90, ">=": 90, "=>": 90, "<=": 90, "=<": 90, "!=": 90}
+    right_value_unary_op = {"int": 10, "if": 100, "elif": 50, "while": 100}
     left_value_unary_op = {"++": 30, "--": 30}
     nullary_op = {"else": 50}
     prefix = ["global"]

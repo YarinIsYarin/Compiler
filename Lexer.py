@@ -89,7 +89,7 @@ def read_word(text):
             expr_flag = False
         else:
             if expr_flag:
-                if char in ['<', '>', '=', '+', '-', '*','/']:
+                if char in ['<', '>', '=', '+', '-', '*', '/', '!']:
                     word += char
                     #print("this word is : |" + word + "|")
                 else:
@@ -98,7 +98,7 @@ def read_word(text):
                         yield word
                     word = char
                     expr_flag = False
-            elif char in ['<', '>', '=', '+', '-', '*', '/']:
+            elif char in ['<', '>', '=', '+', '-', '*', '/', '!']:
                 expr_flag = True
                 if word != "":
                     yield word

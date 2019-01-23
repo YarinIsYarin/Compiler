@@ -33,6 +33,7 @@ def find_highest_priority(line):
         return None
     line.reverse()
     best = line[0]
+    #print([str(k) for k in line])
     for i in line:
         if i.get_priority() > best.get_priority():
             best = i
