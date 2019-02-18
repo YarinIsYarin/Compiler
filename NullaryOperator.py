@@ -64,6 +64,9 @@ class Immediate(ASTNode):
     def parse(self, line):
         pass
 
+    def get_name(self):
+        return self.action
+
     def generate_code(self):
         Consts.compiler.write_code("push " + self.action)
 
@@ -86,37 +89,52 @@ class Identifier(ASTNode):
         if self.action not in Consts.compiler.known_vars:
             Consts.compiler.write_error("Unknown variable " + self.action)
             return self.action
-        if self.additional_data and Consts.compiler.known_vars[self.action] != "int[]":
-            Consts.compiler.write_error(self.action + " is not an array")
-            return self.action
         var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
-        if self.additional_data:
-            self.additional_data.parse([self.additional_data])
-            self.additional_data.generate_code()
-            Consts.compiler.write_code("pop rbx")
-            Consts.compiler.write_code("imul rbx, 8")
-            Consts.compiler.write_code("add rbx, " + var_name)
-            return "[rbx]"
         return var_name
 
     def generate_code(self):
         if self.action not in Consts.compiler.known_vars:
             Consts.compiler.write_error("Unknown variable " + self.action)
             return self.action
-        if self.additional_data and Consts.compiler.known_vars[self.action] != "int[]":
-            Consts.compiler.write_error(self.action + " is not an array")
-            return self.action
         var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
-        if self.additional_data:
-            self.additional_data.parse([self.additional_data])
-            self.additional_data.generate_code()
-            Consts.compiler.write_code("pop rbx")
-            Consts.compiler.write_code("imul rbx, 8")
-            Consts.compiler.write_code("add rbx, " + var_name)
-            Consts.compiler.write_code("push [rbx]")
-        else:
-            Consts.compiler.write_code("push " + var_name)
+        Consts.compiler.write_code("push " + var_name)
         return var_name
+
+
+class ArrayNode(Identifier):
+    def __init__(self, array, index):
+        Identifier.__init__(self, array)
+        self.isGlobal = False
+        self.index = index
+
+    def get_name(self):
+        if self.action.action not in Consts.compiler.known_vars:
+            Consts.compiler.write_error("Unknown variable " + str(self.action))
+            return self.action
+        self.action.generate_code()
+        self.index.generate_code()
+        Consts.compiler.write_code("pop rbx")
+        Consts.compiler.write_code("pop rax")
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[self.action.action])))
+        Consts.compiler.write_code("add rbx, rax")
+        return "[rbx]"
+
+    def generate_code(self):
+        if self.action.action not in Consts.compiler.known_vars:
+            Consts.compiler.write_error("Unknown variable " + self.action.action)
+            return self.action
+        self.action.generate_code()
+        self.index.generate_code()
+        Consts.compiler.write_code("pop rbx")
+        Consts.compiler.write_code("pop rax")
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[self.action.action])))
+        Consts.compiler.write_code("add rbx, rax")
+        Consts.compiler.write_code("push [rbx]")
+
+
+    def parse(self, line):
+        self.index.parse(self.index)
+
 
 class Prefix:
     def __int__(self, data):

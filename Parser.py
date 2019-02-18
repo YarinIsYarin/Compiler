@@ -3,15 +3,13 @@ import Consts
 
 
 class ASTNode:
-    def __init__(self, priority, action, additional_data=None):
+    def __init__(self, priority, action):
         self.priority = priority
         self.params = []
         # action is the actual string given
         self.action = action
         # additional data is for things that can act in different ways
         # and cant be classified as one type of operator such as [7]
-        self.additional_data = additional_data
-
     def get_priority(self): return self.priority
 
     def add_data(self, data): self.additional_data = data
@@ -43,25 +41,29 @@ def find_highest_priority(line):
 
 # turns a list of ASTNode into an ast tree
 # Returns the root of the tree
-from UnaryOperator import Declaration
-from NullaryOperator import Identifier, BracketsBlock, Prefix
+from UnaryOperator import Declaration, ArrayDeclaration
+from NullaryOperator import Identifier, BracketsBlock, Prefix, ArrayNode
+
+
 def parse(line):
     if len(line) > 1:
-        prev = None
-        # Deal with thing like [3]
-        for word in line:
-            # Deal things like x[3] and int[3]
-            if BracketsBlock == type(word):
-                if Declaration != type(prev) and Identifier != type(prev):
-                    Consts.compiler.write_error("Random array index")
-                prev.add_data(word.data)
-                line.remove(word)
-                word = None
-            if word:
-                prev = word
-            if prev == type(Prefix):
-                if Identifier != type(word):
-                    Consts.compiler.write_error("Only a variable can be global")
+        line_index = 0
+        # Deal with things like [3]
+        for i in range(len(line)):
+            if len(line) > i + 1:
+                if isinstance(line[i+1], BracketsBlock):
+                    if not isinstance(line[i], Declaration) and not isinstance(line[i], Identifier):
+                        Consts.compiler.write_error("Random array index")
+                    # Accessing array index
+                    if isinstance(line[i], Identifier):
+                        line[i] = ArrayNode(line[i], line[i+1].data)
+                        line[i+1] = None
+                    # Declaring arrays
+                    if isinstance(line[i], Declaration):
+                        line[i] = ArrayDeclaration(line[i].action, line[i].get_type(), line[i+1].data)
+                        line[i+1] = None
+    line = [i for i in line if i is not None]
+    # Build the AST tree
     if line:
         root = find_highest_priority(line)
         root.parse(line)

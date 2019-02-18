@@ -1,6 +1,9 @@
-int i = 0
-int j = 0
-while (i != j*j)
-    i ++
-    j = j + 2
-i = i
+int len = 3
+int[len*10] arg
+arg[0] = 1
+arg[1] = 1
+int i = 2
+while (i < len*10)
+    arg[i] = arg[i-1] + arg[i-2]
+    i++
+len = arg[10*len-1]

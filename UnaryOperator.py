@@ -1,16 +1,14 @@
 from Parser import ASTNode, find_highest_priority
-from Consts import Priorities
+from Consts import Priorities, Types
 from NullaryOperator import Identifier, ParenthesesBlock
 import Consts
 
 
 def UnaryOperator_factory(data):
     if "int" == data:
-        return Declaration(data)
+        return IntDeclaration(data)
     if "if" == data:
         return If(data)
-    if "elif" == data:
-        return Elif(data)
     if "while" == data:
         return While(data)
     if data in ["++", "--"]:
@@ -29,8 +27,8 @@ class LValueUnaryOperator(ASTNode):
 
 
 class RValueUnaryOperator(ASTNode):
-    def __init__(self, action, additional_data=None):
-        ASTNode.__init__(self, Priorities.right_value_unary_op[action], action, additional_data)
+    def __init__(self, action):
+        ASTNode.__init__(self, Priorities.right_value_unary_op[action], action)
 
     # Receives a list of ASTNode
     def parse(self, line):
@@ -59,7 +57,7 @@ class If(RValueUnaryOperator):
 
 class While(RValueUnaryOperator):
     def __init__(self, action, additional_data=None):
-        RValueUnaryOperator.__init__(self, action, additional_data)
+        RValueUnaryOperator.__init__(self, action)
 
     def generate_code(self):
         if type(self.params[0]) is not ParenthesesBlock:
@@ -77,9 +75,16 @@ class Declaration(RValueUnaryOperator):
     def __init__(self, action, additional_data=None):
         RValueUnaryOperator.__init__(self, action, additional_data)
 
-    # To add parameters such as []
-    def add_data(self, new_data):
-        self.additional_data = new_data
+
+class IntDeclaration(Declaration):
+    def __init__(self, action, additional_data=None):
+        RValueUnaryOperator.__init__(self, action)
+
+    def get_size(self):
+        return Consts.sizes[Types.int_type]
+
+    def get_type(self):
+        return Types.int_type
 
     def get_name(self):
         self.generate_code()
@@ -100,18 +105,6 @@ class Declaration(RValueUnaryOperator):
                 var_name = self.params[0].action
                 if var_name in Consts.compiler.known_vars:
                     Consts.compiler.write_error(var_name + " is already defined")
-                # If this is an array
-                if self.additional_data:
-                    Consts.compiler.known_vars[self.params[0].action] = "int[]"
-                    Consts.compiler.stack_used[-1] += 8
-                    Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
-                    Consts.compiler.write_code("mov [rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "] , rcx")
-                    Consts.compiler.write_code("mov rax, " + str(self.additional_data.params[0].get_name()))
-                    Consts.compiler.write_code("imul rax, 8")
-                    Consts.compiler.write_code("add rcx, rax")
-                    var_name = self.params[0].action
-                    return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
-                # Not an array
                 Consts.compiler.known_vars[self.params[0].action] = "int"
                 Consts.compiler.stack_used[-1] += 8
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
@@ -120,8 +113,54 @@ class Declaration(RValueUnaryOperator):
                 Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
 
 
+class ArrayDeclaration(Declaration):
+    # var_type is the type of the the array, for example int[] is int
+    def __init__(self, action, var_type, index):
+        RValueUnaryOperator.__init__(self, action)
+        self.var_type = var_type
+        self.index = index
+
+    def get_size(self):
+        return Consts.sizes[Types.pointer]
+
+    def get_type(self):
+        return [self.var_type]
+
+    def get_name(self):
+        self.generate_code()
+        if self.params[0]:
+            return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
+
+    # Receive a list of ASTNode
+    def parse(self, line):
+        self.params.append(find_highest_priority(line[line.index(self) + 1:]))
+        if len(self.params) < 1 or not self.params[0]:
+            Consts.compiler.write_error(self.action + " missing a name")
+            return
+        self.params[0].parse(line[line.index(self) + 1:])
+
+    def generate_code(self):
+        if True:
+            if type(self.params[0]) is Identifier:
+                var_name = self.params[0].action
+                if var_name in Consts.compiler.known_vars:
+                    Consts.compiler.write_error(var_name + " is already defined")
+                Consts.compiler.known_vars[self.params[0].action] = [self.var_type]
+                Consts.compiler.stack_used[-1] += Consts.get_size([self.var_type])
+                Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
+                Consts.compiler.write_code(
+                    "mov [rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "] , rcx")
+                self.index.generate_code()
+                Consts.compiler.write_code("pop rax")
+                Consts.compiler.write_code("imul rax, " + str(Consts.get_size([self.var_type])))
+                Consts.compiler.write_code("add rcx, rax")
+                return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
+            if self.params[0]:
+                Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
+
 
 # For ++ and --
+
 class BasicLValue(LValueUnaryOperator):
     def __init__(self, data):
         LValueUnaryOperator.__init__(self, data)

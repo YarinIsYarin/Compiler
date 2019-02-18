@@ -43,6 +43,7 @@ for line in lines:
         output.write_code("\t;" + inp.readline()[0:-1])
         line[1].generate_code()
         output.write_code("")
+    #print(line)
 output.generate_code()
 if output.errors > 0:
     print("File had " + str(output.errors) + " errors")

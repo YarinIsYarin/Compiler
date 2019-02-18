@@ -3,8 +3,6 @@
 # Note that this file can also be used to tell the type of all the keyword in the language
 from enum import Enum, auto
 
-compiler = None
-
 class Token(Enum):
     new_line = auto()
     nullary_op = auto()
@@ -36,3 +34,16 @@ class Priorities:
     left_value_unary_op = {"++": 30, "--": 30}
     nullary_op = {"else": 50}
     prefix = ["global"]
+
+
+class Types(Enum):
+    int_type = auto()
+    pointer = auto()
+
+
+compiler = None
+def get_size(var_type):
+    sizes = {Types.int_type: 8, Types.pointer: 8}
+    if isinstance(var_type, list):
+        return sizes[Types.pointer]
+    return sizes[var_type]
