@@ -1,9 +1,29 @@
+int[3][3] arg2d
+int[3] arg0
+int[3] arg1
+int[3] arg2
+arg2d[0] = arg0
+arg2d[1] = arg1
+arg2d[2] = arg2
+
 int len = 3
-int[len*10] arg
-arg[0] = 1
-arg[1] = 1
-int i = 2
-while (i < len*10)
-    arg[i] = arg[i-1] + arg[i-2]
+int i = 0
+int j = 0
+// set all the cells to 0
+while (i < len)
+    j = 0
+    while (j < len)
+        arg2d[i][j] = i*j
+        j++
     i++
-len = arg[10*len-1]
+
+// Calc the sum of all the cells
+i = 0
+int sum = 0
+while (i < len)
+    j = 0
+    while (j < len)
+        sum = arg2d[i][j] + sum
+        j++
+    i++
+

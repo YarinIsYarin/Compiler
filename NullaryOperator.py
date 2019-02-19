@@ -108,26 +108,26 @@ class ArrayNode(Identifier):
         self.index = index
 
     def get_name(self):
-        if self.action.action not in Consts.compiler.known_vars:
+        if str(self.action.action) not in Consts.compiler.known_vars:
             Consts.compiler.write_error("Unknown variable " + str(self.action))
             return self.action
         self.action.generate_code()
         self.index.generate_code()
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
-        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[self.action.action])))
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)])))
         Consts.compiler.write_code("add rbx, rax")
         return "[rbx]"
 
     def generate_code(self):
-        if self.action.action not in Consts.compiler.known_vars:
-            Consts.compiler.write_error("Unknown variable " + self.action.action)
+        if str(self.action.action) not in Consts.compiler.known_vars:
+            Consts.compiler.write_error("Unknown variable " + str(self.action.action))
             return self.action
         self.action.generate_code()
         self.index.generate_code()
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
-        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[self.action.action])))
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)])))
         Consts.compiler.write_code("add rbx, rax")
         Consts.compiler.write_code("push [rbx]")
 

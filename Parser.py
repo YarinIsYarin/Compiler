@@ -56,12 +56,12 @@ def parse(line):
                         Consts.compiler.write_error("Random array index")
                     # Accessing array index
                     if isinstance(line[i], Identifier):
-                        line[i] = ArrayNode(line[i], line[i+1].data)
-                        line[i+1] = None
+                        line[i+1] = ArrayNode(line[i], line[i+1].data)
+                        line[i] = None
                     # Declaring arrays
                     if isinstance(line[i], Declaration):
-                        line[i] = ArrayDeclaration(line[i].action, line[i].get_type(), line[i+1].data)
-                        line[i+1] = None
+                        line[i+1] = ArrayDeclaration(line[i].action, line[i].get_type(), line[i+1].data)
+                        line[i] = None
     line = [i for i in line if i is not None]
     # Build the AST tree
     if line:

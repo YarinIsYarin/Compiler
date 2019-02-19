@@ -176,4 +176,3 @@ class BasicLValue(LValueUnaryOperator):
             Consts.compiler.write_code("pop rax")
             Consts.compiler.write_code({"++": "inc", "--": "dec"}[self.action] + " rax")
             Consts.compiler.write_code("mov " + self.params[0].get_name() + ", rax")
-        return

@@ -64,3 +64,5 @@ if False:
     for line in lines:
         dfs(line[1])
         print()
+print(Consts.compiler.known_vars)
+print(Consts.compiler.where_on_stack)

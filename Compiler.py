@@ -19,7 +19,7 @@ class Compiler:
         self.data_seg_name = output_name + "_data_seg.txt"
         open(self.code_seg_name, 'w')
         open(self.data_seg_name, 'w')
-        self.last_label = "$"
+        self.last_label = "$a"
         self.lines = open(input_name + '.txt').readlines()
         self.output_file = open(output_name + " errors.txt", 'w')
         self.output_file.write("Compiling " + input_name + "...\n")
@@ -94,7 +94,10 @@ class Compiler:
 
     def label_gen(self):
         # TODO: make a better one
-        self.last_label += "a"
+        if self.last_label[-1] == 'z':
+            self.last_label += 'a'
+        else:
+            self.last_label = self.last_label[0:-1] + chr(ord(self.last_label[-1])+1)
         return self.last_label
 
     def get_var_stack_place(self, var_name):
