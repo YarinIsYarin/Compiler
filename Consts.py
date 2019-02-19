@@ -37,8 +37,10 @@ class Priorities:
 
 
 class Types(Enum):
+    boolean_type = auto()
     int_type = auto()
     pointer = auto()
+    void = auto()
 
 
 compiler = None

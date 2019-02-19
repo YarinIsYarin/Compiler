@@ -1,6 +1,7 @@
 from Parser import *
 import Parser
 import Consts
+from Consts import Types
 
 
 class ParenthesesBlock(ASTNode):
@@ -13,6 +14,9 @@ class ParenthesesBlock(ASTNode):
 
     def generate_code(self):
         return self.params[0].generate_code()
+
+    def get_return_type(self):
+        return self.params[0].get_return_type()
 
     def __str__(self):
         return str(self.params[0])
@@ -56,6 +60,9 @@ class Else(ASTNode):
         Consts.compiler.write_code(end_if_label)
         Consts.compiler.gen_at_end_of_block(end_else_label + ":")
 
+    def get_return_type(self):
+        return Types.void
+
 
 class Immediate(ASTNode):
     def __init__(self, action):
@@ -69,6 +76,8 @@ class Immediate(ASTNode):
 
     def generate_code(self):
         Consts.compiler.write_code("push " + self.action)
+    def get_return_type(self):
+        return Types.int_type
 
 
 class Identifier(ASTNode):
@@ -78,9 +87,6 @@ class Identifier(ASTNode):
 
     def parse(self, line):
         pass
-
-    def add_data(self, data):
-        self.additional_data = data
 
     def set_global(self):
         self.isGlobal = True
@@ -100,10 +106,17 @@ class Identifier(ASTNode):
         Consts.compiler.write_code("push " + var_name)
         return var_name
 
+    def get_return_type(self):
+        return Consts.compiler.known_vars[str(self)]
+
+    def get_type(self):
+        return Consts.compiler.known_vars[str(self)]
+
 
 class ArrayNode(Identifier):
     def __init__(self, array, index):
         Identifier.__init__(self, array)
+        self.arr = array
         self.isGlobal = False
         self.index = index
 
@@ -131,9 +144,14 @@ class ArrayNode(Identifier):
         Consts.compiler.write_code("add rbx, rax")
         Consts.compiler.write_code("push [rbx]")
 
-
     def parse(self, line):
         self.index.parse(self.index)
+
+    def get_return_type(self):
+        return self.arr.get_return_type()[0]
+
+    def get_type(self):
+        return self.arr.get_return_type()[0]
 
 
 class Prefix:

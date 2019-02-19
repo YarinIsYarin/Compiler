@@ -10,12 +10,16 @@ class ASTNode:
         self.action = action
         # additional data is for things that can act in different ways
         # and cant be classified as one type of operator such as [7]
+
     def get_priority(self): return self.priority
 
     def add_data(self, data): self.additional_data = data
 
     def parse(self, line):
         raise NotImplementedError("parse method is abstract in the ASTNode class")
+
+    def get_return_type(self):
+        raise NotImplementedError("get_return_type method is abstract in the ASTNode class")
 
     def __str__(self):
         return str(self.action)

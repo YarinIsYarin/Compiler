@@ -1,6 +1,6 @@
 from Parser import *
 import Parser
-from Consts import Priorities
+from Consts import Priorities, Types
 import Consts
 from NullaryOperator import Identifier
 
@@ -44,15 +44,21 @@ class BasicArithmeticOperator(BinaryOperator):
     def generate_code(self):
         if 2 != len(self.params):
             return
-        if self.params[1] is not None:
-            self.params[1].generate_code()
-        if self.params[0] is not None:
-            self.params[0].generate_code()
+        if self.params[1] is not None and self.params[0] is not None:
+            if self.params[1].get_return_type() == Types.int_type and\
+                    self.params[1].get_return_type() == Types.int_type:
+                self.params[1].generate_code()
+                self.params[0].generate_code()
+            else:
+                Consts.compiler.write_error("Cannot add " + str(self.params[1].get_return_type()) + " and " + str(self.params[0].get_return_type()))
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
         Consts.compiler.write_code("push rax")
         return
+
+    def get_return_type(self):
+        return self.params[1].get_return_type()
 
 
 class Division(BinaryOperator):
@@ -62,10 +68,14 @@ class Division(BinaryOperator):
     def generate_code(self):
         if 2 != len(self.params):
             return
-        if self.params[0] is not None:
-            self.params[0].generate_code()
-        if self.params[1] is not None:
-            self.params[1].generate_code()
+        if self.params[1] is not None and self.params[0] is not None:
+            if self.params[1].get_return_type() == Types.int_type and \
+                    self.params[1].get_return_type() == Types.int_type:
+                self.params[1].generate_code()
+                self.params[0].generate_code()
+            else:
+                Consts.compiler.write_error("Cannot divide " + str(self.params[1].get_return_type()) + " and " + str(
+                    self.params[0].get_return_type()))
         Consts.compiler.write_code("mov edx, 0")
         Consts.compiler.write_code("mov ax, 0")
         Consts.compiler.write_code("mov bx, 0")
@@ -75,7 +85,11 @@ class Division(BinaryOperator):
         Consts.compiler.write_code("push rax")
         return
 
+    def get_return_type(self):
+        return self.params[1].get_return_type()
 
+
+# = not ==
 class Equals(BinaryOperator):
     def __init__(self, action):
         BinaryOperator.__init__(self, action)
@@ -83,14 +97,17 @@ class Equals(BinaryOperator):
     def generate_code(self):
         if 2 != len(self.params):
             return
-        if not (isinstance(self.params[0], Identifier) or self.params[0].action == "int"):
+        if not (isinstance(self.params[0], Identifier) or isinstance(self.params[0], Declaration)):
             Consts.compiler.write_error("Can't change the value of " + str(self.params[0]))
-            return
-        if self.params[1]:
-            self.params[1].generate_code()
-            if self.params[0]:
-                Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
+
+        if not self.params[1].get_return_type() == self.params[0].get_type():
+            Consts.compiler.write_error("Both sides must be of the same type")
+        self.params[1].generate_code()
+        Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
         return
+
+    def get_return_type(self):
+        return Types.void
 
 
 class Compare(BinaryOperator):
@@ -100,9 +117,13 @@ class Compare(BinaryOperator):
     def generate_code(self):
         if 2 != len(self.params):
             return
-        if self.params[0] is not None:
+        if self.params[0] is not None and self.params[1] is not None:
+            if self.params[0].get_return_type() != self.params[0].get_return_type():
+                Consts.compiler.write_error("Cannot compare different types")
+            # Check that its a type we can compare
+            elif self.params[0].get_return_type() not in [Types.int_type]:
+                Consts.compiler.write_error("Incomparable type")
             self.params[0].generate_code()
-        if self.params[1] is not None:
             self.params[1].generate_code()
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
@@ -117,3 +138,6 @@ class Compare(BinaryOperator):
         Consts.compiler.write_code("push 1")
         Consts.compiler.write_code(false + ":")
         return
+
+    def get_return_type(self):
+        return Types.boolean_type

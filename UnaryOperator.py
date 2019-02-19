@@ -40,19 +40,24 @@ class RValueUnaryOperator(ASTNode):
 
 
 class If(RValueUnaryOperator):
-    def __init__(self, action, additional_data=None):
-        RValueUnaryOperator.__init__(self, action, additional_data)
+    def __init__(self, action):
+        RValueUnaryOperator.__init__(self, action)
 
     def generate_code(self):
         Consts.compiler.which_block_am_i.append(Consts.Blocks.if_block)
         if type(self.params[0]) is not ParenthesesBlock:
             Consts.compiler.write_error("Condition must be in parentheses")
+        if self.params[0].get_return_type() != Types.boolean_type:
+            Consts.compiler.write_error("Condition must be boolean")
         self.params[0].generate_code()
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("cmp rax, 0")
         end_of_if = Consts.compiler.label_gen()
         Consts.compiler.write_code("je " + end_of_if)
         Consts.compiler.gen_at_end_of_block(end_of_if + ":")
+
+    def get_return_type(self):
+        return Types.void
 
 
 class While(RValueUnaryOperator):
@@ -62,6 +67,8 @@ class While(RValueUnaryOperator):
     def generate_code(self):
         if type(self.params[0]) is not ParenthesesBlock:
             Consts.compiler.write_error("Condition must be in parentheses")
+        if self.params[0].get_return_type() != Types.boolean_type:
+            Consts.compiler.write_error("Condition must be boolean")
         Consts.compiler.which_block_am_i.append(Consts.Blocks.while_block)
         start_of_loop = Consts.compiler.label_gen()
         end_of_loop = Consts.compiler.label_gen()
@@ -70,10 +77,16 @@ class While(RValueUnaryOperator):
         gen_at_end_of_block = [end_of_loop + ":", self.params[0], "pop rax", "cmp rax, 0", "jne " + start_of_loop]
         Consts.compiler.gen_at_end_of_block(gen_at_end_of_block)
 
+    def get_return_type(self):
+        return Types.void
+
 
 class Declaration(RValueUnaryOperator):
     def __init__(self, action, additional_data=None):
         RValueUnaryOperator.__init__(self, action, additional_data)
+
+    def get_return_type(self):
+        return Types.void
 
 
 class IntDeclaration(Declaration):
@@ -85,6 +98,9 @@ class IntDeclaration(Declaration):
 
     def get_type(self):
         return Types.int_type
+
+    def get_return_type(self):
+        return Types.void
 
     def get_name(self):
         self.generate_code()
@@ -105,7 +121,7 @@ class IntDeclaration(Declaration):
                 var_name = self.params[0].action
                 if var_name in Consts.compiler.known_vars:
                     Consts.compiler.write_error(var_name + " is already defined")
-                Consts.compiler.known_vars[self.params[0].action] = "int"
+                Consts.compiler.known_vars[self.params[0].action] = Types.int_type
                 Consts.compiler.stack_used[-1] += 8
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
                 return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
@@ -145,6 +161,8 @@ class ArrayDeclaration(Declaration):
                 var_name = self.params[0].action
                 if var_name in Consts.compiler.known_vars:
                     Consts.compiler.write_error(var_name + " is already defined")
+                if self.index.get_return_type() != Types.int_type:
+                    Consts.compiler.write_error("Array size must be int")
                 Consts.compiler.known_vars[self.params[0].action] = [self.var_type]
                 Consts.compiler.stack_used[-1] += Consts.get_size([self.var_type])
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
@@ -160,7 +178,6 @@ class ArrayDeclaration(Declaration):
 
 
 # For ++ and --
-
 class BasicLValue(LValueUnaryOperator):
     def __init__(self, data):
         LValueUnaryOperator.__init__(self, data)
@@ -171,8 +188,14 @@ class BasicLValue(LValueUnaryOperator):
         if not isinstance(self.params[0], Identifier):
             Consts.compiler.write_error("Can't change the value of " + str(self.params[0]))
             return
+        if self.params[0].get_return_type() not in [Types.int_type]:
+            Consts.compiler.write_error("Cannot increment this type")
+            return
         if self.params[0]:
             self.params[0].generate_code()
             Consts.compiler.write_code("pop rax")
             Consts.compiler.write_code({"++": "inc", "--": "dec"}[self.action] + " rax")
             Consts.compiler.write_code("mov " + self.params[0].get_name() + ", rax")
+
+    def get_return_type(self):
+        return Types.void
