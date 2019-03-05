@@ -30,8 +30,10 @@ class BracketsBlock:
 def NullaryOperator_factory(token, data):
     if token == Token.identifier:
         return Identifier(data)
-    if token == Token.immediate:
-        return Immediate(data)
+    if token == Token.immediate_int:
+        return ImmediateInt(data)
+    if token == Token.immediate_boolean:
+        return ImmediateBolean(data)
     if token == Token.parentheses_block:
         return ParenthesesBlock(data)
     if token == Token.brackets_block:
@@ -74,8 +76,25 @@ class Immediate(ASTNode):
     def get_name(self):
         return self.action
 
+
+class ImmediateBolean(Immediate):
+    def __init__(self, action):
+        Immediate.__init__(self, action)
+
+    def generate_code(self):
+        Consts.compiler.write_code("push " + str({"true": 1, "false": 0}[self.action]))
+
+    def get_return_type(self):
+        return Types.boolean_type
+
+
+class ImmediateInt(Immediate):
+    def __init__(self, action):
+        Immediate.__init__(self, action)
+
     def generate_code(self):
         Consts.compiler.write_code("push " + self.action)
+
     def get_return_type(self):
         return Types.int_type
 
@@ -128,7 +147,7 @@ class ArrayNode(Identifier):
         self.index.generate_code()
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
-        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)])))
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)][0])))
         Consts.compiler.write_code("add rbx, rax")
         return "[rbx]"
 
@@ -140,7 +159,7 @@ class ArrayNode(Identifier):
         self.index.generate_code()
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
-        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)])))
+        Consts.compiler.write_code("imul rbx, " + str(Consts.get_size(Consts.compiler.known_vars[str(self.action.action)][0])))
         Consts.compiler.write_code("add rbx, rax")
         Consts.compiler.write_code("push [rbx]")
 

@@ -51,6 +51,7 @@ class BasicArithmeticOperator(BinaryOperator):
                 self.params[0].generate_code()
             else:
                 Consts.compiler.write_error("Cannot add " + str(self.params[1].get_return_type()) + " and " + str(self.params[0].get_return_type()))
+        Consts.compiler.write_code(";COMPILING: basic arithmetic of " + str(self.action))
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code(["add", "sub", "imul"][['+', '-', '*'].index(self.action)] + " rax, rbx")
@@ -76,6 +77,7 @@ class Division(BinaryOperator):
             else:
                 Consts.compiler.write_error("Cannot divide " + str(self.params[1].get_return_type()) + " and " + str(
                     self.params[0].get_return_type()))
+        Consts.compiler.write_code(";COMPILING: Division")
         Consts.compiler.write_code("mov edx, 0")
         Consts.compiler.write_code("mov ax, 0")
         Consts.compiler.write_code("mov bx, 0")
@@ -103,8 +105,12 @@ class Equals(BinaryOperator):
         if not self.params[1].get_return_type() == self.params[0].get_type():
             Consts.compiler.write_error("Both sides must be of the same type")
         self.params[1].generate_code()
-        Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
-        return
+        Consts.compiler.write_code(";COMPILING: =")
+        if Types.int_type == self.params[0].get_type():
+            Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
+        if Types.boolean_type == self.params[0].get_type():
+            Consts.compiler.write_code("pop rcx")
+            Consts.compiler.write_code("mov " + str(self.params[0].get_name()) + ", cl")
 
     def get_return_type(self):
         return Types.void
@@ -125,6 +131,7 @@ class Compare(BinaryOperator):
                 Consts.compiler.write_error("Incomparable type")
             self.params[0].generate_code()
             self.params[1].generate_code()
+        Consts.compiler.write_code(";COMPILING:" + str(self.action))
         Consts.compiler.write_code("pop rbx")
         Consts.compiler.write_code("pop rax")
         Consts.compiler.write_code("cmp rax, rbx")

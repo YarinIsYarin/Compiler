@@ -35,7 +35,9 @@ def lex(source, output):
                 word in Priorities.right_value_unary_op.keys():
             yield (Token.unary_op, word)
         elif re.match("\\d+", word):
-            yield (Token.immediate, word)
+            yield (Token.immediate_int, word)
+        elif word in ["false", "true"]:
+            yield (Token.immediate_boolean, word)
         elif word in Priorities.binary_op.keys():
             yield (Token.binary_op, word)
         elif word in Priorities.nullary_op:
@@ -49,7 +51,7 @@ def lex(source, output):
                 yield (Token.parentheses_block, temp)
             except Exception:
                 output.write_error("Missing parentheses")
-                yield(Token.immediate, "1")
+                yield(Token.immediate_int, "1")
                 yield (Token.new_line, "\n")
         elif "[" == word:
             try:
@@ -57,7 +59,7 @@ def lex(source, output):
                 yield (Token.brackets_block, temp)
             except Exception:
                 output.messages.write_error("Missing parentheses")
-                yield (Token.immediate, "1")
+                yield (Token.immediate_int, "1")
                 yield(Token.new_line, "\n")
         elif "//" == word:
             yield (Token.comment, "#")

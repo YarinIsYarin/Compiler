@@ -8,7 +8,8 @@ class Token(Enum):
     nullary_op = auto()
     unary_op = auto()
     binary_op = auto()
-    immediate = auto()
+    immediate_int = auto()
+    immediate_boolean = auto()
     identifier = auto()
     parentheses_block = auto()
     brackets_block = auto()
@@ -30,7 +31,7 @@ class Blocks(Enum):
 class Priorities:
     binary_op = {'+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90,
                  ">": 90, "<": 90, ">=": 90, "=>": 90, "<=": 90, "=<": 90, "!=": 90}
-    right_value_unary_op = {"int": 10, "if": 100, "elif": 50, "while": 100}
+    right_value_unary_op = {"boolean": 10, "int": 10, "if": 100, "elif": 50, "while": 100}
     left_value_unary_op = {"++": 30, "--": 30}
     nullary_op = {"else": 50}
     prefix = ["global"]
@@ -45,7 +46,7 @@ class Types(Enum):
 
 compiler = None
 def get_size(var_type):
-    sizes = {Types.int_type: 8, Types.pointer: 8}
+    sizes = {Types.int_type: 8, Types.pointer: 8, Types.boolean_type: 1}
     if isinstance(var_type, list):
         return sizes[Types.pointer]
     return sizes[var_type]
