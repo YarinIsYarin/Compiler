@@ -24,14 +24,22 @@ class Compiler:
         self.output_file = open(output_name + " errors.txt", 'w')
         self.output_file.write("Compiling " + input_name + "...\n")
         self.line = 0
+        # Count how many warnings \ errors the program had
         self.errors = 0
         self.warnings = 0
+        # func_name: return type
+        self.known_funcs = {}
+        # The line the function was declared on : func_name
+        self.func_lines = {}
+        # The exact parameters in the functions signature
+        self.func_declarations = {}
 
     def next_line(self, indent=None):
         self.line_number += 1
         if indent is None:
             return
         if indent > len(self.block_stack):
+            print(self.block_stack)
             self.write_error("Over indented block")
             return
         while indent < len(self.block_stack):
@@ -82,6 +90,7 @@ class Compiler:
         code_seg = open(self.code_seg_name, 'r')
         output.write(code_seg.read())
         output.write("\tsub rbp, " + str(self.stack_used[-1]) + "\n")
+        output.write("\n@$$$end_of_code:")
         output.write("\nmov   ecx,0\n")
         output.write("call  ExitProcess\n")
         output.write("main endp\n")
@@ -93,7 +102,6 @@ class Compiler:
         output.close()
 
     def label_gen(self):
-        # TODO: make a better one
         if self.last_label[-1] == 'z':
             self.last_label += 'a'
         else:

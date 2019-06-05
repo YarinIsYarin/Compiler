@@ -111,14 +111,14 @@ class Identifier(ASTNode):
         self.isGlobal = True
 
     def get_name(self):
-        if self.action not in Consts.compiler.known_vars:
+        if str(self.action) not in Consts.compiler.known_vars:
             Consts.compiler.write_error("Unknown variable " + self.action)
             return self.action
         var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
         return var_name
 
     def generate_code(self):
-        if self.action not in Consts.compiler.known_vars:
+        if str(self.action) not in Consts.compiler.known_vars:
             Consts.compiler.write_error("Unknown variable " + self.action)
             return self.action
         var_name = "[rbp - " + str(Consts.compiler.get_var_stack_place(self.action)) + "]"
@@ -126,10 +126,14 @@ class Identifier(ASTNode):
         return var_name
 
     def get_return_type(self):
-        return Consts.compiler.known_vars[str(self)]
+        if str(self) in Consts.compiler.known_vars:
+            return Consts.compiler.known_vars[str(self)]
+        return "Unknown variable"
 
     def get_type(self):
-        return Consts.compiler.known_vars[str(self)]
+        if str(self) in Consts.compiler.known_vars:
+            return Consts.compiler.known_vars[str(self)]
+        return "Unknown variable"
 
 
 class ArrayNode(Identifier):
@@ -172,7 +176,43 @@ class ArrayNode(Identifier):
     def get_type(self):
         return self.arr.get_return_type()[0]
 
-
+# Legacy code
+''' 
 class Prefix:
     def __int__(self, data):
         self.data = data
+'''
+
+
+class FunctionCall(ASTNode):
+    def __init__(self, action, parenthesis):
+        ASTNode.__init__(self, 0, action)
+        self.params = [parenthesis]
+        self.full_name = ""
+
+    def generate_code(self):
+        self.full_name = str(self.action) + "$" + Consts.type_to_string(self.params[0].get_return_type())
+
+        Consts.compiler.write_code("mov rax, rsp")
+        Consts.compiler.write_code("add rbp, " + str(Consts.frame_size))
+        Consts.compiler.write_code("mov rsp, rbp")
+        Consts.compiler.write_code("push rax")
+        Consts.compiler.write_code("sub rbp, " + str(Consts.frame_size))
+        self.params[0].generate_code()
+        Consts.compiler.write_code("add rbp, " + str(Consts.frame_size))
+        Consts.compiler.write_code("mov rsp, [rbp - 8]")
+        ret_label = Consts.compiler.label_gen()
+        Consts.compiler.write_code("mov rax, " + ret_label)
+        Consts.compiler.write_code("mov [rbp - 8], rax")
+        Consts.compiler.write_code("jmp @" + self.full_name)
+        Consts.compiler.write_code(ret_label + ":")
+        Consts.compiler.write_code("sub rbp, " + str(Consts.frame_size))
+
+    def get_return_type(self):
+        return Consts.compiler.known_funcs[self.full_name]
+
+    def parse(self, line):
+        self.params[0].parse(line)
+
+    def get_name(self):
+        return self.action

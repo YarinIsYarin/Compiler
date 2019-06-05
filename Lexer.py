@@ -1,3 +1,4 @@
+import Consts
 from Consts import Token, Priorities
 import re
 
@@ -58,11 +59,11 @@ def lex(source, output):
                 temp = lex_with_parentheses(text, '[', output)
                 yield (Token.brackets_block, temp)
             except Exception:
-                output.messages.write_error("Missing parentheses")
+                output.write_error("Missing parentheses")
                 yield (Token.immediate_int, "1")
                 yield(Token.new_line, "\n")
         elif "//" == word:
-            yield (Token.comment, "#")
+            yield (Token.comment, "//")
         elif "eof" == word:
             yield (Token.new_line, "\n")
         elif " " == word:
@@ -72,41 +73,51 @@ def lex(source, output):
 
 
 # Reads a text word by word
-def read_word(text):
+def read_word(text, in_function_declaration=False):
     # reading something with a few non islanum such as <= and ++
     expr_flag = False
     word = ""
     for char in text:
-        # Because /// is also a comment just like //
-        if "//" == word:
-            yield word
-            word = ""
-            expr_flag = False
-
-        if char in [" ", "\n", ')', '(', '[', ']']:
-            if word != "":
+        # Ignore lines containing functions declarations
+        if Consts.compiler.line_number in Consts.compiler.func_lines and not in_function_declaration:
+            if char == "\n":
+                # Lex the params in the function signature
+                #print(*lex(read_word(Consts.compiler.func_declarations[Consts.compiler.func_lines[Consts.compiler.line_number]]), Consts.Compiler))
+                #print(Consts.compiler.func_declarations[Consts.compiler.func_lines[Consts.compiler.line_number]])
+                for i in read_word(Consts.compiler.func_declarations[Consts.compiler.func_lines[Consts.compiler.line_number]][1:-1], in_function_declaration=True):
+                    #print("is is " + str(i))
+                    yield i
+        else:
+            # Because /// is also a comment just like //
+            if "//" == word:
                 yield word
                 word = ""
-            yield char
-            expr_flag = False
-        else:
-            if expr_flag:
-                if char in ['<', '>', '=', '+', '-', '*', '/', '!']:
-                    word += char
-                    #print("this word is : |" + word + "|")
-                else:
-                    #print("char is : " + char + " word is " + word)
+                expr_flag = False
+
+            if char in [" ", "\n", ')', '(', '[', ']', ',']:
+                if word != "":
+                    yield word
+                    word = ""
+                yield char
+                expr_flag = False
+            else:
+                if expr_flag:
+                    if char in ['<', '>', '=', '+', '-', '*', '/', '!']:
+                        word += char
+                        #print("this word is : |" + word + "|")
+                    else:
+                        #print("char is : " + char + " word is " + word)
+                        if word != "":
+                            yield word
+                        word = char
+                        expr_flag = False
+                elif char in ['<', '>', '=', '+', '-', '*', '/', '!']:
+                    expr_flag = True
                     if word != "":
                         yield word
                     word = char
-                    expr_flag = False
-            elif char in ['<', '>', '=', '+', '-', '*', '/', '!']:
-                expr_flag = True
-                if word != "":
-                    yield word
-                word = char
-            else:
-                word += char
+                else:
+                    word += char
     if word != "":
         yield word
     yield "eof"

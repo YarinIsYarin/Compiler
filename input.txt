@@ -1,9 +1,10 @@
-int x = 0
-int k = 0
-boolean[5] flag
-flag[4] = true
-flag[3] = false
-flag[2] = true
+int x = 6
+int y = 2
 
-if (flag[3])
-    x = 1
+hel(x, y ,x*y+1)
+
+func int hel(int a, int b, int c)
+    a = a - b
+    a = a*c
+
+

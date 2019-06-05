@@ -236,7 +236,7 @@ class IntDeclaration(Declaration):
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
                 return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
             if self.params[0]:
-                Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
+                Consts.compiler.write_error(str(self.params[0].action) + " is not a valid int name")
 
 
 class ArrayDeclaration(Declaration):

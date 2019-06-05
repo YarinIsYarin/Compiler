@@ -46,7 +46,7 @@ def find_highest_priority(line):
 # turns a list of ASTNode into an ast tree
 # Returns the root of the tree
 from UnaryOperator import Declaration, ArrayDeclaration
-from NullaryOperator import Identifier, BracketsBlock, Prefix, ArrayNode
+from NullaryOperator import Identifier, BracketsBlock, ArrayNode, ParenthesesBlock, FunctionCall
 
 
 def parse(line):
@@ -55,6 +55,13 @@ def parse(line):
         # Deal with things like [3]
         for i in range(len(line)):
             if len(line) > i + 1:
+                # Merge the name of the function and the parenthesis
+                if isinstance(line[i+1], ParenthesesBlock):
+                    if isinstance(line[i], Identifier):
+                        line[i + 1] = FunctionCall(line[i], line[i + 1])
+                        line[i] = None
+
+                # Merge the name of the array and the brackets
                 if isinstance(line[i+1], BracketsBlock):
                     if not isinstance(line[i], Declaration) and not isinstance(line[i], Identifier):
                         Consts.compiler.write_error("Random array index")
@@ -71,7 +78,6 @@ def parse(line):
     if line:
         root = find_highest_priority(line)
         root.parse(line)
-        #print("root is: " + root)
         return root
 
 
