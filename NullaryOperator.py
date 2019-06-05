@@ -192,6 +192,8 @@ class FunctionCall(ASTNode):
 
     def generate_code(self):
         self.full_name = str(self.action) + "$" + Consts.type_to_string(self.params[0].get_return_type())
+        if not self.full_name in Consts.compiler.known_funcs:
+            Consts.compiler.write_error("Unknown function")
 
         Consts.compiler.write_code("mov rax, rsp")
         Consts.compiler.write_code("add rbp, " + str(Consts.frame_size))
@@ -209,7 +211,9 @@ class FunctionCall(ASTNode):
         Consts.compiler.write_code("sub rbp, " + str(Consts.frame_size))
 
     def get_return_type(self):
-        return Consts.compiler.known_funcs[self.full_name]
+        if self.full_name in Consts.compiler.known_funcs:
+            return Consts.compiler.known_funcs[self.full_name]
+
 
     def parse(self, line):
         self.params[0].parse(line)
