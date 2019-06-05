@@ -84,6 +84,7 @@ for i in range(len(lines)):
             Consts.compiler.write_code("jmp @$$$end_of_code")
             Consts.compiler.write_code("@" + Consts.compiler.func_lines[i+1] + ":")
             Consts.compiler.stack_used.append(8)
+            Consts.compiler.in_func = Consts.compiler.func_lines[i+1]
         # Add the matching line from the file
         Consts.compiler.write_code("\t;" + inp.readline()[0:-1])
         line[1].generate_code()

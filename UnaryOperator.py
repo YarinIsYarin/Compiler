@@ -13,6 +13,8 @@ def UnaryOperator_factory(data):
         return If(data)
     if "while" == data:
         return While(data)
+    if "return" == data:
+        return Return(data)
     if data in ["++", "--"]:
         return BasicLValue(data)
 
@@ -309,3 +311,26 @@ class BasicLValue(LValueUnaryOperator):
 
     def get_return_type(self):
         return Types.void
+
+
+class Return(RValueUnaryOperator):
+    def __init__(self, action):
+        RValueUnaryOperator.__init__(self, action)
+
+    def generate_code(self):
+        print("here")
+        self.params[0].generate_code()
+        if not Consts.compiler.in_func:
+            Consts.compiler.write_error("Return must be in function")
+            return
+        if Consts.type_to_string(self.get_return_type()) != Consts.compiler.known_funcs[Consts.compiler.in_func]:
+            Consts.compiler.write_error("Function should return " +
+                                        Consts.compiler.known_funcs[Consts.compiler.in_func]
+                                        + " and not " + str(self.get_return_type()))
+        if self.get_return_type() != Consts.Types.void:
+            # We return the value the function calculated in rbx
+            Consts.compiler.write_code("pop rbx")
+        Consts.compiler.write_code("mov rax, [rbp - 8]\njmp rax")
+
+    def get_return_type(self):
+        return self.params[0].get_return_type()

@@ -33,8 +33,12 @@ class Compiler:
         self.func_lines = {}
         # The exact parameters in the functions signature
         self.func_declarations = {}
+        # The name (as in known_funcs) of the function we are currently in, None if in main
+        self.in_func = None
 
     def next_line(self, indent=None):
+        if indent == 0:
+            self.in_func = None
         self.line_number += 1
         if indent is None:
             return
@@ -61,6 +65,7 @@ class Compiler:
         self.output_file.write("Error at line " + str(self.line_number) + ": " + error_msg + ":\n")
         self.output_file.write(self.lines[self.line_number - 1] + "\n")
         self.errors += 1
+        a
 
     def write_data(self, data):
         data_seg = open(self.data_seg_name, "a")

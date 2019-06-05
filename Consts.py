@@ -31,7 +31,7 @@ class Blocks(Enum):
 class Priorities:
     binary_op = {'and': 30, 'or': 40, '+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90,
                  ">": 90, "<": 90, ">=": 90, "=>": 90, "<=": 90, "=<": 90, "!=": 90, ",": 120}
-    right_value_unary_op = {"boolean": 10, "int": 10, "if": 100, "elif": 50, "while": 100}
+    right_value_unary_op = {"boolean": 10, "int": 10, "if": 100, "elif": 50, "while": 100, "return": 150}
     left_value_unary_op = {"++": 30, "--": 30}
     nullary_op = {"else": 50}
     prefix = ["global"]
@@ -69,3 +69,16 @@ def type_to_string(types):
         return "boolean"
     if types == Types.int_type:
         return "int"
+
+
+def string_to_type(stri):
+    if len(stri) >= 2 and stri[-2:] == "[]":
+        return [string_to_type(stri[:-2])]
+    if stri == "void":
+        return Types.void
+    if stri == "int":
+        return Types.int_type
+    if stri == "boolean":
+        return Types.boolean_type
+
+

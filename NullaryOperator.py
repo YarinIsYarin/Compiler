@@ -209,10 +209,13 @@ class FunctionCall(ASTNode):
         Consts.compiler.write_code("jmp @" + self.full_name)
         Consts.compiler.write_code(ret_label + ":")
         Consts.compiler.write_code("sub rbp, " + str(Consts.frame_size))
+        if self.get_return_type() != Consts.Types.void:
+            Consts.compiler.write_code("push rbx")
 
     def get_return_type(self):
         if self.full_name in Consts.compiler.known_funcs:
-            return Consts.compiler.known_funcs[self.full_name]
+            return Consts.string_to_type(Consts.compiler.known_funcs[self.full_name])
+        print("hello")
 
 
     def parse(self, line):

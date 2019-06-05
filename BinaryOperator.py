@@ -134,9 +134,9 @@ class Equals(BinaryOperator):
             return
         if not (isinstance(self.params[0], Identifier) or isinstance(self.params[0], Declaration)):
             Consts.compiler.write_error("Can't change the value of " + str(self.params[0]))
+        self.params[1].generate_code()
         if self.params[1].get_return_type() != self.params[0].get_type():
             Consts.compiler.write_error("Both sides must be of the same type")
-        self.params[1].generate_code()
         Consts.compiler.write_code(";COMPILING: =")
         if Types.int_type == self.params[0].get_type():
             Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
