@@ -1,5 +1,5 @@
-import os
-import Parser
+import os, Parser
+from Consts import Types, string_to_type
 
 
 class Compiler:
@@ -35,10 +35,23 @@ class Compiler:
         self.func_declarations = {}
         # The name (as in known_funcs) of the function we are currently in, None if in main
         self.in_func = None
+        # True iff the current function had a return statement
+        self.posibble_return = False
+        self.guaranteed_return = False
+        self.indent = 0
 
     def next_line(self, indent=None):
+        self.indent = indent
         if indent == 0:
+            # Make sure the function has a return statement
+            if self.in_func and string_to_type(self.known_funcs[self.in_func]) != Types.void and not self.posibble_return:
+                self.write_error("Missing return statement")
+            elif self.in_func and string_to_type(self.known_funcs[self.in_func]) != Types.void and not self.guaranteed_return:
+                self.write_warning("No unconditional return statement")
             self.in_func = None
+            self.posibble_return = False
+            self.guaranteed_return = False
+
         self.line_number += 1
         if indent is None:
             return
@@ -65,7 +78,11 @@ class Compiler:
         self.output_file.write("Error at line " + str(self.line_number) + ": " + error_msg + ":\n")
         self.output_file.write(self.lines[self.line_number - 1] + "\n")
         self.errors += 1
-        a
+
+    def write_warning(self, warning_msg):
+        self.output_file.write("Warning at line " + str(self.line_number) + ": " + warning_msg + ":\n")
+        self.output_file.write(self.lines[self.line_number - 1] + "\n")
+
 
     def write_data(self, data):
         data_seg = open(self.data_seg_name, "a")
