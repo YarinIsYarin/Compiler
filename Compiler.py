@@ -9,6 +9,7 @@ class Compiler:
         # Given a var, how much do we need to sub from bp to get that var
         self.where_on_stack = [{}]
         self.known_vars = {}
+        self.vars_at_this_block = [[]]
         # This hold what we need to do at the end of each block
         self.block_stack = []
         # A stack that save the type of block we are currently in (such as if, else and etc)
@@ -68,11 +69,17 @@ class Compiler:
                     i.generate_code()
                 else:
                     self.write_code(i)
+            for x in self.vars_at_this_block[-1]:
+                print(x)
+                self.known_vars.pop(x)
+                self.where_on_stack[-1].pop(x)
+            self.vars_at_this_block.pop()
         while indent < len(self.which_block_am_i) - 1:
             self.which_block_am_i.pop()
 
     def gen_at_end_of_block(self, code):
         self.block_stack.append(code)
+        self.vars_at_this_block.append([])
 
     def write_error(self, error_msg):
         self.output_file.write("Error at line " + str(self.line_number) + ": " + error_msg + ":\n")

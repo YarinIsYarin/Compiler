@@ -63,22 +63,13 @@ def type_to_string(types):
         for i in types:
             ret += "$" + type_to_string(i)
         return ret[1:]
-    if types == Types.void:
-        return "void"
-    if types == Types.boolean_type:
-        return "boolean"
-    if types == Types.int_type:
-        return "int"
+    return {Types.void: "void", Types.boolean_type: "boolean", Types.int_type: "int"}[types]
 
 
 def string_to_type(stri):
     if len(stri) >= 2 and stri[-2:] == "[]":
         return [string_to_type(stri[:-2])]
-    if stri == "void":
-        return Types.void
-    if stri == "int":
-        return Types.int_type
-    if stri == "boolean":
-        return Types.boolean_type
+    return {"void": Types.void, "boolean": Types.boolean_type, "int": Types.int_type}[stri]
+
 
 

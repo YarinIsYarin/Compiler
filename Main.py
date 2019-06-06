@@ -77,7 +77,7 @@ Consts.compiler.line_number = 0
 inp = open("input.txt", 'r')
 for i in range(len(lines)):
     line = lines[i]
-    #print("line is : " + str(line))
+    #print("line is : " + str(line[1]))
     Consts.compiler.next_line(line[0])
     if line[1]:
         if i+1 in Consts.compiler.func_lines:
@@ -112,7 +112,7 @@ def dfs(root):
     print("}", end='')
 
 # For debugging!
-if True:
+if False:
     print("DFS:")
     for i in range(len(lines)):
         line = lines[i]

@@ -1,9 +1,6 @@
-int x = 6
-int y = 2
-
-
-func int wow(int a, int b)
-    a = a + b
-    if (true)
+int x = fibo(11)
+x=x
+func int fibo(int i)
+    if (i <= 2)
         return 1
-
+    return fibo(i-1) + fibo(i-2)
