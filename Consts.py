@@ -58,18 +58,18 @@ def get_size(var_type):
 def type_to_string(types):
     if type(types) == list:
         if len(types) == 1:
-            return type_to_string(types[0]) + "[]"
+            return type_to_string(types[0]) + "BB"
         ret = ""
         for i in types:
             ret += "$" + type_to_string(i)
         return ret[1:]
-    return {Types.void: "void", Types.boolean_type: "boolean", Types.int_type: "int"}[types]
+    return {Types.void: "void", Types.boolean_type: "boolean", Types.int_type: "int", Types.pointer: "pointer"}[types]
 
 
 def string_to_type(stri):
-    if len(stri) >= 2 and stri[-2:] == "[]":
+    if len(stri) >= 2 and stri[-2:] == "BB":
         return [string_to_type(stri[:-2])]
-    return {"void": Types.void, "boolean": Types.boolean_type, "int": Types.int_type}[stri]
+    return {"void": Types.void, "boolean": Types.boolean_type, "int": Types.int_type, "pointer": Types.pointer}[stri]
 
 
 

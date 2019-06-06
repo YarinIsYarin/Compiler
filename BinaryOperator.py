@@ -76,7 +76,7 @@ class Comma(BinaryOperator):
 
     def generate_code(self):
         if 2 != len(self.params):
-            Consts.compiler.write_error("Comma must receive two values")
+            return
         if self.params[1] is None or self.params[0] is None:
             return
         self.params[0].generate_code()
@@ -89,7 +89,9 @@ class Comma(BinaryOperator):
         '''
 
     def get_return_type(self):
-        if type(self.params[0].get_return_type()) != list:
+        if len(self.params) != 2:
+            return Consts.Types.void
+        if self.params[0] is not Comma:
             #print("is not list " + str(self.params[0].get_return_type()))
             return [self.params[0].get_return_type(), self.params[1].get_return_type()]
         #print("is list " + str(self.params[0].get_return_type()))
@@ -140,9 +142,12 @@ class Equals(BinaryOperator):
         Consts.compiler.write_code(";COMPILING: =")
         if Types.int_type == self.params[0].get_type():
             Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
+            return
         if Types.boolean_type == self.params[0].get_type():
+            return
             Consts.compiler.write_code("pop rcx")
             Consts.compiler.write_code("mov " + str(self.params[0].get_name()) + ", cl")
+        Consts.compiler.write_code("pop " + str(self.params[0].get_name()))
 
     def get_return_type(self):
         return Types.void

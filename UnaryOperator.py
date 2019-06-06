@@ -122,7 +122,7 @@ class IntDeclaration(Declaration):
             var_name = self.params[0].action
             if var_name in Consts.compiler.known_vars:
                 Consts.compiler.write_error(var_name + " is already defined")
-            Consts.compiler.vars_at_this_block[-1] += self.params[0].action
+            Consts.compiler.vars_at_this_block[-1].append(self.params[0].action)
             Consts.compiler.known_vars[self.params[0].action] = Types.int_type
             Consts.compiler.stack_used[-1] += Consts.get_size(Types.int_type)
             Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
@@ -146,7 +146,7 @@ class BooleanDeclaration(Declaration):
             var_name = self.params[0].action
             if var_name in Consts.compiler.known_vars:
                 Consts.compiler.write_error(var_name + " is already defined")
-            Consts.compiler.vars_at_this_block[-1] += self.params[0].action
+            Consts.compiler.vars_at_this_block[-1].append(self.params[0].action)
             Consts.compiler.known_vars[self.params[0].action] = Types.boolean_type
             Consts.compiler.stack_used[-1] += Consts.get_size(Types.boolean_type)
             Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
@@ -187,18 +187,19 @@ class ArrayDeclaration(Declaration):
                 var_name = self.params[0].action
                 if var_name in Consts.compiler.known_vars:
                     Consts.compiler.write_error(var_name + " is already defined")
-                if self.index.get_return_type() != Types.int_type:
-                    Consts.compiler.write_error("Array size must be int")
-                Consts.compiler.vars_at_this_block[-1] += self.params[0].action
+                Consts.compiler.vars_at_this_block[-1].append(self.params[0].action)
                 Consts.compiler.known_vars[self.params[0].action] = [self.var_type]
                 Consts.compiler.stack_used[-1] += Consts.get_size([self.var_type])
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
-                Consts.compiler.write_code(
-                    "mov [rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "] , rcx")
-                self.index.generate_code()
-                Consts.compiler.write_code("pop rax")
-                Consts.compiler.write_code("imul rax, " + str(Consts.get_size([self.var_type])))
-                Consts.compiler.write_code("add rcx, rax")
+                if self.index.params:
+                    if self.index.get_return_type() != Types.int_type:
+                        Consts.compiler.write_error("Array size must be int")
+                    Consts.compiler.write_code(
+                        "mov [rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "] , rcx")
+                    self.index.generate_code()
+                    Consts.compiler.write_code("pop rax")
+                    Consts.compiler.write_code("imul rax, " + str(Consts.get_size([self.var_type])))
+                    Consts.compiler.write_code("add rcx, rax")
                 return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
             if self.params[0]:
                 Consts.compiler.write_error(self.params[0].action + " is not a valid int name")

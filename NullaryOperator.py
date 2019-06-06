@@ -10,16 +10,22 @@ class ParenthesesBlock(ASTNode):
         self.params = [Parser.ast_node_factory(i[0], i[1]) for i in action if i[0] != Token.space]
 
     def parse(self, line):
-        self.params = [Parser.parse(self.params)]
+        if self.params:
+            self.params = [Parser.parse(self.params)]
 
     def generate_code(self):
-        return self.params[0].generate_code()
+        if self.params:
+            return self.params[0].generate_code()
 
     def get_return_type(self):
-        return self.params[0].get_return_type()
+        if self.params:
+            return self.params[0].get_return_type()
+        return Consts.Types.void
 
     def __str__(self):
-        return str(self.params[0])
+        if self.params:
+            return str(self.params[0])
+        return str("I AM PARENTHESIS")
 
 
 class BracketsBlock:
@@ -171,7 +177,9 @@ class ArrayNode(Identifier):
         self.index.parse(self.index)
 
     def get_return_type(self):
-        return self.arr.get_return_type()[0]
+        if self.index:
+            return self.arr.get_return_type()[0]
+        return [self.arr.get_return_type()[0]]
 
     def get_type(self):
         return self.arr.get_return_type()[0]
@@ -192,6 +200,7 @@ class FunctionCall(ASTNode):
 
     def generate_code(self):
         self.full_name = str(self.action) + "$" + Consts.type_to_string(self.params[0].get_return_type())
+        #print(self.params[0].get_return_type())
         if self.full_name not in Consts.compiler.known_funcs:
             Consts.compiler.write_error("Unknown function")
 

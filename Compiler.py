@@ -70,7 +70,6 @@ class Compiler:
                 else:
                     self.write_code(i)
             for x in self.vars_at_this_block[-1]:
-                print(x)
                 self.known_vars.pop(x)
                 self.where_on_stack[-1].pop(x)
             self.vars_at_this_block.pop()

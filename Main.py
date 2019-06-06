@@ -26,6 +26,8 @@ def split_into_funcs(file_name):
             # Replace parentheses and commas with $, for nice output
             name = name.replace('(', "$")
             name = name.replace(',', "$")
+            name = name.replace('[', "B")
+            name = name.replace(']', "B")
             Consts.compiler.known_funcs[name] = curr_line.split()[1]
             Consts.compiler.func_lines[line_number] = name
 
@@ -50,7 +52,7 @@ indent = 0
 curr_line = []
 #print(*lex(open("input.txt", 'r').read(), Consts.compiler))
 for word in lex(open("input.txt", 'r').read(), Consts.compiler):
-    #print("word is : " + str(word))
+    print("word is : " + str(word))
     if word[0] != Consts.Token.new_line:
         if not comment_flag:
             # print(word) #deb
@@ -112,7 +114,7 @@ def dfs(root):
     print("}", end='')
 
 # For debugging!
-if False:
+if True:
     print("DFS:")
     for i in range(len(lines)):
         line = lines[i]
@@ -124,7 +126,9 @@ if False:
     print("Funcs names:")
     print(Consts.compiler.known_funcs)
     print(Consts.compiler.func_lines)
+    print(Consts.compiler.stack_used)
     print(Consts.compiler.known_vars)
     print(Consts.compiler.where_on_stack)
-    print(Consts.compiler.stack_used)
+
+
 

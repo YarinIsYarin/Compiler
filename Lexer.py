@@ -12,7 +12,7 @@ def lex_with_parentheses(text, char, output):
     stack = [char]
     word = next(text)
     if closer[char] == word:
-        stack.pop
+        stack.pop()
     while stack:
         if '\n' == word or "eof" == word:
             raise Exception
