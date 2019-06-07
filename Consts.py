@@ -29,11 +29,10 @@ class Blocks(Enum):
 
 
 class Priorities:
-    binary_op = {'and': 30, 'or': 40, '+': 40, '-': 40, '*': 20, '/': 20, '=': 100, '-=': 100, '+=': 100, '/=': 100, '*=': 100, "==": 90,
+    binary_op = {'and': 30, 'or': 40, '+': 40, '-': 40, '*': 20, '/': 20, '=': 100,  "==": 90,
                  ">": 90, "<": 90, ">=": 90, "=>": 90, "<=": 90, "=<": 90, "!=": 90, ",": 120}
     right_value_unary_op = {"boolean": 10, "int": 10, "if": 100, "elif": 50, "while": 100, "return": 150}
-    left_value_unary_op = {"++": 30, "--": 30}
-    nullary_op = {"else": 50}
+    nullary_op = {"else": 50, "main" : 100}
     prefix = ["global"]
 
 
@@ -45,8 +44,9 @@ class Types(Enum):
 
 
 compiler = None
-frame_size = 64
+frame_size = 32
 indent_size = 4
+size_of_tab = 4
 
 def get_size(var_type):
     sizes = {Types.int_type: 8, Types.pointer: 8, Types.boolean_type: 1}
@@ -63,7 +63,11 @@ def type_to_string(types):
         for i in types:
             ret += "$" + type_to_string(i)
         return ret[1:]
-    return {Types.void: "void", Types.boolean_type: "boolean", Types.int_type: "int", Types.pointer: "pointer"}[types]
+    try:
+        return {Types.void: "void", Types.boolean_type: "boolean", Types.int_type: "int", Types.pointer: "pointer"}[types]
+    except:
+        compiler.write_error("Unbalanced parenthesis")
+        return ""
 
 
 def string_to_type(stri):

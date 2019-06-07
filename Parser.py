@@ -13,7 +13,8 @@ class ASTNode:
 
     def get_priority(self): return self.priority
 
-    def add_data(self, data): self.additional_data = data
+    # Legacy Code
+    #def add_data(self, data): self.additional_data = data
 
     def parse(self, line):
         raise NotImplementedError("parse method is abstract in the ASTNode class")
@@ -51,6 +52,7 @@ from NullaryOperator import Identifier, BracketsBlock, ArrayNode, ParenthesesBlo
 
 def parse(line):
     if len(line) > 1:
+        #(line)
         line_index = 0
         # Deal with things like [3]
         for i in range(len(line)):

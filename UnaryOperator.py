@@ -191,7 +191,7 @@ class ArrayDeclaration(Declaration):
                 Consts.compiler.known_vars[self.params[0].action] = [self.var_type]
                 Consts.compiler.stack_used[-1] += Consts.get_size([self.var_type])
                 Consts.compiler.where_on_stack[-1][self.params[0].action] = Consts.compiler.stack_used[-1]
-                if self.index.params:
+                if self.index.params[0]:
                     if self.index.get_return_type() != Types.int_type:
                         Consts.compiler.write_error("Array size must be int")
                     Consts.compiler.write_code(
@@ -203,7 +203,6 @@ class ArrayDeclaration(Declaration):
                 return "[rbp - " + str(Consts.compiler.get_var_stack_place(self.params[0].action)) + "]"
             if self.params[0]:
                 Consts.compiler.write_error(self.params[0].action + " is not a valid int name")
-
 ''' Legacy code
 class IntDeclaration(Declaration):
     def __init__(self, action, additional_data=None):
@@ -333,7 +332,7 @@ class Return(RValueUnaryOperator):
         if Consts.string_to_type(Consts.compiler.known_funcs[Consts.compiler.in_func]) == Consts.Types.void:
             return
         self.params[0].generate_code()
-        if Consts.type_to_string(self.get_return_type()) != Consts.compiler.known_funcs[Consts.compiler.in_func]:
+        if self.get_return_type() != Consts.string_to_type(Consts.compiler.known_funcs[Consts.compiler.in_func]):
             Consts.compiler.write_error("Function should return " +
                                         Consts.compiler.known_funcs[Consts.compiler.in_func]
                                         + " and not " + str(self.get_return_type()))

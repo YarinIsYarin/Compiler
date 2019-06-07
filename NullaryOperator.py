@@ -14,11 +14,11 @@ class ParenthesesBlock(ASTNode):
             self.params = [Parser.parse(self.params)]
 
     def generate_code(self):
-        if self.params:
+        if self.params[0]:
             return self.params[0].generate_code()
 
     def get_return_type(self):
-        if self.params:
+        if self.params[0]:
             return self.params[0].get_return_type()
         return Consts.Types.void
 
@@ -48,6 +48,8 @@ def NullaryOperator_factory(token, data):
         return Prefix(data)
     if data == "else":
         return Else(data)
+    if data == "main":
+        return Main(data)
 
 
 class Else(ASTNode):
@@ -108,6 +110,8 @@ class ImmediateInt(Immediate):
 class Identifier(ASTNode):
     def __init__(self, action):
         ASTNode.__init__(self, 0, action)
+        if not self.action:
+            a
         self.isGlobal = False
 
     def parse(self, line):
@@ -192,17 +196,29 @@ class Prefix:
 '''
 
 
+class Main(ASTNode):
+    def __init__(self, action):
+        ASTNode.__init__(self, 0, action)
+
+    def generate_code(self):
+        Consts.compiler.does_main_exists = True
+        Consts.compiler.write_code("@$$main:")
+        Consts.compiler.gen_at_end_of_block("jmp @$$$end_of_code")
+
+    def get_return_type(self):
+        return Types.void
+
+    def parse(self, line):
+        pass
+
+
 class FunctionCall(ASTNode):
     def __init__(self, action, parenthesis):
         ASTNode.__init__(self, 0, action)
         self.params = [parenthesis]
-        self.full_name = ""
+        self.full_name = "NAMEME"
 
     def generate_code(self):
-        self.full_name = str(self.action) + "$" + Consts.type_to_string(self.params[0].get_return_type())
-        #print(self.params[0].get_return_type())
-        if self.full_name not in Consts.compiler.known_funcs:
-            Consts.compiler.write_error("Unknown function")
 
         Consts.compiler.write_code("mov rax, rsp")
         Consts.compiler.write_code("add rbp, " + str(Consts.frame_size))
@@ -210,6 +226,9 @@ class FunctionCall(ASTNode):
         Consts.compiler.write_code("push rax")
         Consts.compiler.write_code("sub rbp, " + str(Consts.frame_size))
         self.params[0].generate_code()
+        self.full_name = str(self.action) + "$" + Consts.type_to_string(self.params[0].get_return_type())
+        if self.full_name not in Consts.compiler.known_funcs:
+            Consts.compiler.write_error("Unknown function")
         Consts.compiler.write_code("add rbp, " + str(Consts.frame_size))
         Consts.compiler.write_code("mov rsp, [rbp - 8]")
         ret_label = Consts.compiler.label_gen()

@@ -1,1 +1,7 @@
-if (3==3)
+main	
+	int x = hello()
+	x = x
+
+func int hello()
+	return 3
+

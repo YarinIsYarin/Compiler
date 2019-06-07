@@ -40,6 +40,7 @@ class Compiler:
         self.posibble_return = False
         self.guaranteed_return = False
         self.indent = 0
+        self.does_main_exists = False
 
     def next_line(self, indent=None):
         self.indent = indent
@@ -81,13 +82,14 @@ class Compiler:
         self.vars_at_this_block.append([])
 
     def write_error(self, error_msg):
+        #cr
         self.output_file.write("Error at line " + str(self.line_number) + ": " + error_msg + ":\n")
         self.output_file.write(self.lines[self.line_number - 1] + "\n")
         self.errors += 1
 
     def write_warning(self, warning_msg):
+        self.warnings += 1
         self.output_file.write("Warning at line " + str(self.line_number) + ": " + warning_msg + ":\n")
-        self.output_file.write(self.lines[self.line_number - 1] + "\n")
 
 
     def write_data(self, data):
@@ -101,6 +103,17 @@ class Compiler:
         code_seg.close()
 
     def generate_code(self):
+        if not self.does_main_exists:
+            self.write_warning("Missing Main")
+
+        if self.warnings > 0:
+            print("File had " + str(self.warnings) + " warnings")
+        if self.errors > 0:
+            print("File had " + str(self.errors) + " errors")
+            return
+        else:
+            print("Compiled successfully!")
+
         # Join the .code, .data into a working asm program
         output = open(self.output_name + ".asm", 'w')
         output.write("ExitProcess proto\n\n")
@@ -115,6 +128,10 @@ class Compiler:
         output.write("\tmov rcx, offset startOfHeap\n")
         output.write("\tmov rbp, rsp\n")
         output.write("\tadd rbp, " + str(self.stack_used[-1]) + "\n")
+        if self.does_main_exists:
+            output.write("\tjmp @$$main\n")
+        else:
+            output.write("\tjmp @$$$end_of_code\n")
         code_seg = open(self.code_seg_name, 'r')
         output.write(code_seg.read())
         output.write("\tsub rbp, " + str(self.stack_used[-1]) + "\n")

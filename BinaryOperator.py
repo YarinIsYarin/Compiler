@@ -165,6 +165,7 @@ class Compare(BinaryOperator):
                 Consts.compiler.write_error("Cannot compare different types")
             # Check that its a type we can compare
             elif self.params[0].get_return_type() not in [Types.int_type]:
+                print(Consts.compiler.line_number)
                 Consts.compiler.write_error("Incomparable type")
             self.params[0].generate_code()
             self.params[1].generate_code()
